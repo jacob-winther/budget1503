@@ -31,6 +31,40 @@ describe('budgetStore', () => {
     expect(createdItem!.months.every((value) => value === 125)).toBe(true)
   })
 
+  it('caps entry titles at 28 characters on add and edit', () => {
+    const store = useBudgetStore()
+
+    const expenseCategory = store.addCategory({ sectionType: 'expense', name: 'Utilities' })
+    const longName = 'abcdefghijklmnopqrstuvwxyz123456789'
+
+    const createdItem = store.addItem({
+      categoryId: expenseCategory!.id,
+      name: longName,
+      baseAmount: 100,
+      months: Array.from({ length: 12 }, () => 100),
+    })
+
+    expect(createdItem).toBeTruthy()
+    expect(createdItem!.name).toBe('abcdefghijklmnopqrstuvwxyz12')
+
+    const updated = store.editItem({
+      itemId: createdItem!.id,
+      categoryId: expenseCategory!.id,
+      name: '012345678901234567890123456789',
+      baseAmount: 100,
+      months: Array.from({ length: 12 }, () => 100),
+    })
+
+    expect(updated).toBe(true)
+
+    const refreshed = getExpenseSection(store).categories
+      .find((category) => category.id === expenseCategory!.id)!
+      .items.find((candidate) => candidate.id === createdItem!.id)
+
+    expect(refreshed).toBeTruthy()
+    expect(refreshed!.name).toBe('0123456789012345678901234567')
+  })
+
   it('edits an item with monthly overrides', () => {
     const store = useBudgetStore()
 

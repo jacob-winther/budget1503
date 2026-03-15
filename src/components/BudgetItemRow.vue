@@ -126,6 +126,7 @@ const onSaveEdit = () => {
               v-model="draftName"
               class="inline-category-input"
               type="text"
+              maxlength="28"
               @keydown.enter.prevent="onSaveEdit"
               @keydown.esc.prevent="emit('cancel-edit')"
             />

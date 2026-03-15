@@ -138,6 +138,10 @@ body {
   gap: 8px;
 }
 
+.budget-table td.category-name {
+  padding-left: calc(6px + 6px);
+}
+
 .item-row-content {
   display: flex;
   flex-direction: column;
@@ -155,22 +159,9 @@ body {
 }
 
 
-.budget-table td.item-name {
-  padding-left: calc(6px + 12px);
-}
-
 .budget-table td.item-name.expense-item-name {
   position: relative;
-  padding-left: calc(6px + 12px);
-}
-
-.expense-item-name::before {
-  content: '';
-  position: absolute;
-  left: 24px;
-  top: 50%;
-  width: 12px;
-  border-top: 1px solid #bfd0e1;
+  padding-left: 24px;
 }
 
 .expense-item-row td {

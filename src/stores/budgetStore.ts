@@ -13,6 +13,7 @@ import type {
 } from '../types/budget'
 
 const STORAGE_KEY = 'budget-app-data-v1'
+const ENTRY_TITLE_MAX_LENGTH = 28
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
@@ -227,6 +228,7 @@ const findItem = (
 }
 
 const normalizeName = (value: unknown): string => String(value ?? '').trim()
+const normalizeEntryName = (value: unknown): string => normalizeName(value).slice(0, ENTRY_TITLE_MAX_LENGTH)
 
 interface SerializedBudgetStore {
   currentYear: number
@@ -501,7 +503,7 @@ export const useBudgetStore = defineStore('budget', () => {
       return null
     }
 
-    const normalizedItemName = normalizeName(name)
+    const normalizedItemName = normalizeEntryName(name)
 
     if (!normalizedItemName) {
       return null
@@ -530,7 +532,7 @@ export const useBudgetStore = defineStore('budget', () => {
       return false
     }
 
-    const normalizedItemName = normalizeName(name)
+    const normalizedItemName = normalizeEntryName(name)
 
     if (!normalizedItemName) {
       return false

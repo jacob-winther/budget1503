@@ -120,7 +120,7 @@ const canSave = computed(() => {
     <div class="dialog-grid">
       <label>
         <span>Name</span>
-        <InputText v-model="name" class="w-full" />
+        <InputText v-model="name" class="w-full" :maxlength="28" />
       </label>
 
       <label>
