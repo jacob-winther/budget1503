@@ -7,6 +7,7 @@ import CategoryFormDialog from './components/CategoryFormDialog.vue'
 import CopyYearDialog from './components/CopyYearDialog.vue'
 import { useBudgetStore } from './stores/budgetStore'
 import type { BudgetItem, FlatCategoryOption, SaveCategoryPayload, SaveItemPayload, SectionType } from './types/budget'
+import { createBudgetExportJson, parseBudgetImportJson } from './utils/budgetFile'
 
 const store = useBudgetStore()
 
@@ -22,6 +23,7 @@ const editingCategoryId = ref<string | null>(null)
 const editingItemId = ref<string | null>(null)
 
 const showCopyYearDialog = ref(false)
+const importFileInput = ref<HTMLInputElement | null>(null)
 
 const flatCategories = computed<FlatCategoryOption[]>(() => {
   return store.sections.flatMap((section) =>
@@ -189,6 +191,58 @@ const onConfirmCopyYear = ({ fromYear, toYear }: { fromYear: number; toYear: num
   store.copyYear(fromYear, toYear)
   showCopyYearDialog.value = false
 }
+
+const onExportBudget = () => {
+  const exportJson = createBudgetExportJson({
+    currentYear: store.currentYear,
+    data: store.data,
+  })
+
+  const blob = new Blob([exportJson], { type: 'application/json' })
+  const downloadUrl = URL.createObjectURL(blob)
+  const dateStamp = new Date().toISOString().slice(0, 10)
+  const anchor = document.createElement('a')
+  anchor.href = downloadUrl
+  anchor.download = `budget-${store.currentYear}-${dateStamp}.json`
+  document.body.appendChild(anchor)
+  anchor.click()
+  document.body.removeChild(anchor)
+  URL.revokeObjectURL(downloadUrl)
+}
+
+const onImportBudgetClick = () => {
+  importFileInput.value?.click()
+}
+
+const onImportBudgetSelected = async (event: Event) => {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+
+  if (!file) {
+    return
+  }
+
+  const text = await file.text()
+  const parsed = parseBudgetImportJson(text)
+
+  if (!parsed.ok) {
+    window.alert(parsed.error)
+    input.value = ''
+    return
+  }
+
+  const shouldOverwrite = window.confirm('Importing will replace the current budget data. Continue?')
+
+  if (!shouldOverwrite) {
+    input.value = ''
+    return
+  }
+
+  store.data = parsed.payload.data
+  store.setYear(parsed.payload.currentYear)
+  store.saveToStorage()
+  input.value = ''
+}
 </script>
 
 <template>
@@ -200,6 +254,16 @@ const onConfirmCopyYear = ({ fromYear, toYear }: { fromYear: number; toYear: num
       @prev-year="store.goToPreviousYear"
       @next-year="store.goToNextYear"
       @copy-prev-year="onCopyPreviousYear"
+      @import-budget="onImportBudgetClick"
+      @export-budget="onExportBudget"
+    />
+
+    <input
+      ref="importFileInput"
+      type="file"
+      accept="application/json,.json"
+      style="display: none"
+      @change="onImportBudgetSelected"
     />
 
     <BudgetTable
