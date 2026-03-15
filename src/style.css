@@ -207,6 +207,18 @@ body {
   padding: 0;
 }
 
+.section-row .inline-add-btn {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+}
+
+.section-row:hover .inline-add-btn,
+.section-row:focus-within .inline-add-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .row-actions {
   display: inline-flex;
   align-items: center;

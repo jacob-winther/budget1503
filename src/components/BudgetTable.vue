@@ -30,7 +30,9 @@ withDefaults(
 
 const emit = defineEmits<{
   (event: 'toggle-section', sectionId: string): void
+  (event: 'add-category', sectionType: BudgetSection['type']): void
   (event: 'toggle-category', categoryId: string): void
+  (event: 'add-item', categoryId: string): void
   (event: 'start-category-edit', categoryId: string): void
   (event: 'save-category-edit', payload: { categoryId: string; name: string }): void
   (event: 'cancel-category-edit'): void
@@ -63,6 +65,7 @@ const emit = defineEmits<{
             :section="section"
             :totals="getSectionTotals(section)"
             @toggle="emit('toggle-section', $event)"
+            @add-category="emit('add-category', $event)"
           />
 
           <template v-if="!section.collapsed">
@@ -72,6 +75,7 @@ const emit = defineEmits<{
                 :totals="getCategoryTotals(category)"
                 :is-editing="editingCategoryId === category.id"
                 @toggle="emit('toggle-category', $event)"
+                @add-item="emit('add-item', $event)"
                 @start-edit="emit('start-category-edit', $event)"
                 @save-edit="emit('save-category-edit', $event)"
                 @cancel-edit="emit('cancel-category-edit')"

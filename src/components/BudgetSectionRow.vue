@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { BudgetSection, Totals } from '../types/budget'
+import { formatCurrency } from '../utils/formatting'
 
 defineProps<{
   section: BudgetSection
@@ -8,9 +9,8 @@ defineProps<{
 
 const emit = defineEmits<{
   (event: 'toggle', sectionId: string): void
+  (event: 'add-category', sectionType: BudgetSection['type']): void
 }>()
-
-const currency = (value: number) => Number(value).toLocaleString('en-US', { maximumFractionDigits: 0 })
 </script>
 
 <template>
@@ -18,11 +18,14 @@ const currency = (value: number) => Number(value).toLocaleString('en-US', { maxi
     <td class="sticky-left name-col section-name">
       <i class="pi" :class="section.collapsed ? 'pi-chevron-right' : 'pi-chevron-down'" />
       {{ section.name }}
+      <button class="inline-action-btn inline-add-btn" type="button" title="Add category" @click.stop="emit('add-category', section.type)">
+        <i class="pi pi-plus" />
+      </button>
     </td>
     <td v-for="(month, index) in totals.monthly" :key="`${section.id}-${index}`" class="amount">
-      {{ currency(month) }}
+      {{ formatCurrency(month) }}
     </td>
-    <td class="amount strong">{{ currency(totals.yearly) }}</td>
-    <td class="amount">{{ currency(totals.average) }}</td>
+    <td class="amount strong">{{ formatCurrency(totals.yearly) }}</td>
+    <td class="amount">{{ formatCurrency(totals.average) }}</td>
   </tr>
 </template>

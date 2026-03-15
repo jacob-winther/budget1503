@@ -13,10 +13,12 @@ const props = withDefaults(
     mode?: 'create' | 'edit'
     item?: BudgetItem | null
     categories: FlatCategoryOption[]
+    initialCategoryId?: string | null
   }>(),
   {
     mode: 'create',
     item: null,
+    initialCategoryId: null,
   },
 )
 
@@ -45,7 +47,7 @@ const categoryOptions = computed(() => [
 const isCreatingCategory = computed(() => selectedCategoryId.value === NEW_CATEGORY_VALUE)
 
 const resetState = () => {
-  selectedCategoryId.value = props.categories[0]?.id ?? ''
+  selectedCategoryId.value = props.initialCategoryId ?? props.categories[0]?.id ?? ''
   newCategoryName.value = ''
   newCategorySectionType.value = 'expense'
   name.value = ''

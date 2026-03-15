@@ -6,17 +6,18 @@ import ItemFormDialog from './components/ItemFormDialog.vue'
 import CategoryFormDialog from './components/CategoryFormDialog.vue'
 import CopyYearDialog from './components/CopyYearDialog.vue'
 import { useBudgetStore } from './stores/budgetStore'
-import type { BudgetItem, FlatCategoryOption, SaveCategoryPayload, SaveItemPayload } from './types/budget'
+import type { BudgetItem, FlatCategoryOption, SaveCategoryPayload, SaveItemPayload, SectionType } from './types/budget'
 
 const store = useBudgetStore()
 
 const showItemDialog = ref(false)
 const itemDialogMode = ref<'create' | 'edit'>('create')
 const editingItem = ref<BudgetItem | null>(null)
+const creatingItemCategoryId = ref<string | null>(null)
 
 const showCategoryDialog = ref(false)
 const categoryDialogMode = ref<'create' | 'edit'>('create')
-const editingCategory = ref(null)
+const editingCategory = ref<{ id: string; name: string; sectionType?: SectionType } | null>(null)
 const editingCategoryId = ref<string | null>(null)
 const editingItemId = ref<string | null>(null)
 
@@ -51,17 +52,22 @@ const confirmOverwriteCopy = (): boolean => {
   return window.confirm('Current year already has budget entries. Copying will overwrite them. Continue?')
 }
 
-const openNewItemDialog = () => {
+const openNewItemDialog = (categoryId: string | null = null) => {
   itemDialogMode.value = 'create'
   editingItem.value = null
+  creatingItemCategoryId.value = categoryId
   editingCategoryId.value = null
   editingItemId.value = null
   showItemDialog.value = true
 }
 
-const openNewCategoryDialog = () => {
+const openNewCategoryDialog = (sectionType: SaveCategoryPayload['sectionType'] = 'expense') => {
   categoryDialogMode.value = 'create'
-  editingCategory.value = null
+  editingCategory.value = {
+    id: '',
+    name: '',
+    sectionType,
+  }
   showCategoryDialog.value = true
 }
 
@@ -72,6 +78,7 @@ const onSaveItem = (payload: SaveItemPayload) => {
     store.addItem(payload)
   }
 
+  creatingItemCategoryId.value = null
   showItemDialog.value = false
 }
 
@@ -193,8 +200,6 @@ const onConfirmCopyYear = ({ fromYear, toYear }: { fromYear: number; toYear: num
       @prev-year="store.goToPreviousYear"
       @next-year="store.goToNextYear"
       @copy-prev-year="onCopyPreviousYear"
-      @new-category="openNewCategoryDialog"
-      @new-item="openNewItemDialog"
     />
 
     <BudgetTable
@@ -211,7 +216,9 @@ const onConfirmCopyYear = ({ fromYear, toYear }: { fromYear: number; toYear: num
       :get-item-year-total="store.getItemYearTotal"
       :get-item-monthly-average="store.getItemMonthlyAverage"
       @toggle-section="store.toggleSectionCollapse"
+      @add-category="openNewCategoryDialog"
       @toggle-category="store.toggleCategoryCollapse"
+      @add-item="openNewItemDialog"
       @start-category-edit="startInlineCategoryEdit"
       @save-category-edit="saveInlineCategoryEdit"
       @cancel-category-edit="cancelInlineCategoryEdit"
@@ -227,8 +234,9 @@ const onConfirmCopyYear = ({ fromYear, toYear }: { fromYear: number; toYear: num
       :mode="itemDialogMode"
       :item="editingItem"
       :categories="flatCategories"
+      :initial-category-id="creatingItemCategoryId"
       @save="onSaveItem"
-      @close="showItemDialog = false"
+      @close="showItemDialog = false; creatingItemCategoryId = null"
     />
 
     <CategoryFormDialog

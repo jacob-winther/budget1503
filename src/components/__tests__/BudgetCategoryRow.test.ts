@@ -43,7 +43,7 @@ describe('BudgetCategoryRow', () => {
       },
     })
 
-    await wrapper.find('.row-actions .inline-action-btn').trigger('click')
+    await wrapper.findAll('.row-actions .inline-action-btn')[1].trigger('click')
     expect(wrapper.emitted('start-edit')).toBeTruthy()
 
     await wrapper.setProps({ isEditing: true })
@@ -71,8 +71,31 @@ describe('BudgetCategoryRow', () => {
       },
     })
 
-    await wrapper.findAll('.row-actions .inline-action-btn')[1].trigger('click')
+    await wrapper.findAll('.row-actions .inline-action-btn')[2].trigger('click')
     expect(wrapper.emitted('delete')).toBeTruthy()
     expect(wrapper.emitted('delete')?.[0]).toEqual(['cat-1'])
+  })
+
+  it('emits add-item from inline plus action', async () => {
+    const wrapper = mount(BudgetCategoryRow, {
+      props: {
+        category: {
+          id: 'cat-1',
+          name: 'Fixed Costs',
+          collapsed: false,
+          items: [],
+        },
+        totals: {
+          monthly: Array.from({ length: 12 }, () => 100),
+          yearly: 1200,
+          average: 100,
+        },
+      },
+    })
+
+    await wrapper.find('.inline-add-btn').trigger('click')
+
+    expect(wrapper.emitted('add-item')).toBeTruthy()
+    expect(wrapper.emitted('add-item')?.[0]).toEqual(['cat-1'])
   })
 })

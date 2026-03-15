@@ -16,6 +16,7 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   (event: 'toggle', categoryId: string): void
+  (event: 'add-item', categoryId: string): void
   (event: 'start-edit', categoryId: string): void
   (event: 'save-edit', payload: { categoryId: string; name: string }): void
   (event: 'cancel-edit'): void
@@ -75,6 +76,9 @@ const onSaveEdit = () => {
       <template v-else>
         {{ category.name }}
         <span class="row-actions">
+          <button class="inline-action-btn inline-add-btn" type="button" title="Add entry" @click.stop="emit('add-item', category.id)">
+            <i class="pi pi-plus" />
+          </button>
           <button class="inline-action-btn" type="button" @click.stop="emit('start-edit', category.id)">
             <i class="pi pi-pencil" />
           </button>

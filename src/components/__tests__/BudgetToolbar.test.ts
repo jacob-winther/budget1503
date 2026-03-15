@@ -3,19 +3,16 @@ import { mount } from '@vue/test-utils'
 import BudgetToolbar from '../BudgetToolbar.vue'
 
 describe('BudgetToolbar', () => {
-  it('renders only create actions', () => {
+  it('renders copy previous year action', () => {
     const wrapper = mount(BudgetToolbar, {
       props: {
         year: 2026,
       },
     })
 
-    const buttons = wrapper.findAll('button')
-    const newCategoryButton = buttons.find((button) => button.text().includes('New Category'))
-    const newItemButton = buttons.find((button) => button.text().includes('New Entry'))
+    const copyButton = wrapper.findAll('button').find((button) => button.text().includes('Copy Previous Year'))
 
-    expect(newCategoryButton).toBeTruthy()
-    expect(newItemButton).toBeTruthy()
+    expect(copyButton).toBeTruthy()
   })
 
   it('emits year navigation', async () => {
