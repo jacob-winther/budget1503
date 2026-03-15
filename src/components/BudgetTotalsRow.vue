@@ -1,21 +1,20 @@
 <script setup lang="ts">
 import type { Totals } from '../types/budget'
+import { formatCurrency } from '../utils/formatting'
 
 defineProps<{
   label: string
   totals: Totals
 }>()
-
-const currency = (value: number) => Number(value).toLocaleString('en-US', { maximumFractionDigits: 0 })
 </script>
 
 <template>
   <tr class="totals-row">
     <td class="sticky-left name-col">{{ label }}</td>
     <td v-for="(month, index) in totals.monthly" :key="`${label}-${index}`" class="amount">
-      {{ currency(month) }}
+      {{ formatCurrency(month) }}
     </td>
-    <td class="amount strong">{{ currency(totals.yearly) }}</td>
-    <td class="amount">{{ currency(totals.average) }}</td>
+    <td class="amount strong">{{ formatCurrency(totals.yearly) }}</td>
+    <td class="amount">{{ formatCurrency(totals.average) }}</td>
   </tr>
 </template>

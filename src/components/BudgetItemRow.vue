@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import type { BudgetItem, SectionType } from '../types/budget'
+import { formatCurrency } from '../utils/formatting'
+import {
+  calculateMonthsAverage,
+  calculateMonthsYearTotal,
+  fillAllMonthsFromIndex,
+  getChangedMonthIndexes,
+} from '../utils/budgetItemEditing'
 
 const props = withDefaults(
   defineProps<{
@@ -62,8 +69,8 @@ watch(
   { deep: true },
 )
 
-const draftYearTotal = computed(() => draftMonths.value.reduce((sum, value) => sum + Number(value ?? 0), 0))
-const draftAverage = computed(() => draftYearTotal.value / 12)
+const draftYearTotal = computed(() => calculateMonthsYearTotal(draftMonths.value))
+const draftAverage = computed(() => calculateMonthsAverage(draftMonths.value))
 
 const originalMonths = computed(() => props.item.months.map((value) => Number(value ?? 0)))
 
@@ -89,23 +96,12 @@ const applyInlineNudgeFill = () => {
     return
   }
 
-  const sourceMonthIndex = inlineNudge.value.monthIndex
-  const replacementValue = Number(draftMonths.value[sourceMonthIndex] ?? 0)
-
-  draftMonths.value = draftMonths.value.map((value, index) => {
-    if (index === sourceMonthIndex) {
-      return Number(value ?? 0)
-    }
-
-    return replacementValue
-  })
+  draftMonths.value = fillAllMonthsFromIndex(draftMonths.value, inlineNudge.value.monthIndex)
 }
 
 const onSaveEdit = () => {
   const nextMonths = draftMonths.value.map((value) => Number(value ?? 0))
-  const changedMonthIndexes = nextMonths
-    .map((value, index) => (value !== originalMonths.value[index] ? index : -1))
-    .filter((index) => index !== -1)
+  const changedMonthIndexes = getChangedMonthIndexes(nextMonths, originalMonths.value)
 
   emit('save-edit', {
     itemId: props.item.id,
@@ -118,7 +114,6 @@ const onSaveEdit = () => {
   })
 }
 
-const currency = (value: number) => Number(value).toLocaleString('en-US', { maximumFractionDigits: 0 })
 </script>
 
 <template>
@@ -179,10 +174,10 @@ const currency = (value: number) => Number(value).toLocaleString('en-US', { maxi
         </div>
       </template>
       <template v-else>
-        {{ currency(month) }}
+        {{ formatCurrency(month) }}
       </template>
     </td>
-    <td class="amount strong">{{ currency(isEditing ? draftYearTotal : yearTotal) }}</td>
-    <td class="amount">{{ currency(isEditing ? draftAverage : average) }}</td>
+    <td class="amount strong">{{ formatCurrency(isEditing ? draftYearTotal : yearTotal) }}</td>
+    <td class="amount">{{ formatCurrency(isEditing ? draftAverage : average) }}</td>
   </tr>
 </template>

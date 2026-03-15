@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import type { BudgetCategory, Totals } from '../types/budget'
+import { formatCurrency } from '../utils/formatting'
 
 const props = withDefaults(
   defineProps<{
@@ -45,7 +46,6 @@ const onSaveEdit = () => {
   emit('save-edit', { categoryId: props.category.id, name: draftName.value.trim() })
 }
 
-const currency = (value: number) => Number(value).toLocaleString('en-US', { maximumFractionDigits: 0 })
 </script>
 
 <template>
@@ -85,9 +85,9 @@ const currency = (value: number) => Number(value).toLocaleString('en-US', { maxi
       </template>
     </td>
     <td v-for="(month, index) in totals.monthly" :key="`${category.id}-${index}`" class="amount">
-      {{ currency(month) }}
+      {{ formatCurrency(month) }}
     </td>
-    <td class="amount strong">{{ currency(totals.yearly) }}</td>
-    <td class="amount">{{ currency(totals.average) }}</td>
+    <td class="amount strong">{{ formatCurrency(totals.yearly) }}</td>
+    <td class="amount">{{ formatCurrency(totals.average) }}</td>
   </tr>
 </template>
