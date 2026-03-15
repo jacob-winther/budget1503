@@ -2,8 +2,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { useBudgetStore } from '../budgetStore'
 
-const getExpenseSection = (store) => store.sections.find((section) => section.type === 'expense')
-const getIncomeSection = (store) => store.sections.find((section) => section.type === 'income')
+type BudgetStore = ReturnType<typeof useBudgetStore>
+
+const getExpenseSection = (store: BudgetStore) => store.sections.find((section) => section.type === 'expense')!
+const getIncomeSection = (store: BudgetStore) => store.sections.find((section) => section.type === 'income')!
 
 beforeEach(() => {
   localStorage.clear()
@@ -18,15 +20,15 @@ describe('budgetStore', () => {
     expect(expenseCategory).toBeTruthy()
 
     const createdItem = store.addItem({
-      categoryId: expenseCategory.id,
+      categoryId: expenseCategory!.id,
       name: 'Electricity',
       baseAmount: 125,
       months: [],
     })
 
     expect(createdItem).toBeTruthy()
-    expect(createdItem.months).toHaveLength(12)
-    expect(createdItem.months.every((value) => value === 125)).toBe(true)
+    expect(createdItem!.months).toHaveLength(12)
+    expect(createdItem!.months.every((value) => value === 125)).toBe(true)
   })
 
   it('edits an item with monthly overrides', () => {
@@ -34,7 +36,7 @@ describe('budgetStore', () => {
 
     const expenseCategory = store.addCategory({ sectionType: 'expense', name: 'Car' })
     const item = store.addItem({
-      categoryId: expenseCategory.id,
+      categoryId: expenseCategory!.id,
       name: 'Fuel',
       baseAmount: 100,
       months: Array.from({ length: 12 }, () => 100),
@@ -44,8 +46,8 @@ describe('budgetStore', () => {
     months[2] = 250
 
     const updated = store.editItem({
-      itemId: item.id,
-      categoryId: expenseCategory.id,
+      itemId: item!.id,
+      categoryId: expenseCategory!.id,
       name: 'Fuel',
       baseAmount: 100,
       months,
@@ -53,12 +55,12 @@ describe('budgetStore', () => {
 
     expect(updated).toBe(true)
     const refreshed = getExpenseSection(store).categories
-      .find((category) => category.id === expenseCategory.id)
-      .items.find((candidate) => candidate.id === item.id)
+      .find((category) => category.id === expenseCategory!.id)!
+      .items.find((candidate) => candidate.id === item!.id)
 
     expect(refreshed).toBeTruthy()
-    expect(refreshed.months[2]).toBe(250)
-    expect(refreshed.months[1]).toBe(100)
+    expect(refreshed!.months[2]).toBe(250)
+    expect(refreshed!.months[1]).toBe(100)
   })
 
   it('calculates expense, income, and difference totals', () => {
@@ -128,8 +130,8 @@ describe('budgetStore', () => {
     const copied = store.copyYear(fromYear, toYear)
     expect(copied).toBe(true)
 
-    const sourceExpenseSection = store.data[fromYear].sections.find((section) => section.type === 'expense')
-    const copiedExpenseSection = store.data[toYear].sections.find((section) => section.type === 'expense')
+    const sourceExpenseSection = store.data[fromYear].sections.find((section) => section.type === 'expense')!
+    const copiedExpenseSection = store.data[toYear].sections.find((section) => section.type === 'expense')!
     const copiedItem = copiedExpenseSection.categories[0].items[0]
 
     expect(copiedExpenseSection).toBeTruthy()
@@ -178,7 +180,7 @@ describe('budgetStore', () => {
     const changedCount = store.fillRemainingCopiedMonthsFrom(copiedItem.id, 1)
     expect(changedCount).toBe(11)
 
-    const refreshed = getExpenseSection(store).categories[0].items.find((item) => item.id === copiedItem.id)
+    const refreshed = getExpenseSection(store).categories[0].items.find((item) => item.id === copiedItem.id)!
     expect(refreshed.months.every((value) => value === 1600)).toBe(true)
   })
 
@@ -187,20 +189,20 @@ describe('budgetStore', () => {
 
     const expenseCategory = store.addCategory({ sectionType: 'expense', name: 'Utilities' })
     const item = store.addItem({
-      categoryId: expenseCategory.id,
+      categoryId: expenseCategory!.id,
       name: 'Water',
       baseAmount: 100,
       months: [100, 90, 80, 70, 60, 50, 40, 30, 20, 10, 0, 110],
     })
 
-    const changedCount = store.fillRemainingCopiedMonthsFrom(item.id, 0)
+    const changedCount = store.fillRemainingCopiedMonthsFrom(item!.id, 0)
     expect(changedCount).toBe(11)
 
     const refreshed = getExpenseSection(store).categories
-      .find((category) => category.id === expenseCategory.id)
-      .items.find((candidate) => candidate.id === item.id)
+      .find((category) => category.id === expenseCategory!.id)!
+      .items.find((candidate) => candidate.id === item!.id)
 
-    expect(refreshed.months).toEqual([100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100])
+    expect(refreshed!.months).toEqual([100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100])
   })
 
   it('deletes item and category', () => {
@@ -241,15 +243,15 @@ describe('budgetStore', () => {
     const incomeCategory = store.addCategory({ sectionType: 'income', name: 'Consulting' })
 
     const item = store.addItem({
-      categoryId: expenseCategory.id,
+      categoryId: expenseCategory!.id,
       name: 'Transfer Me',
       baseAmount: 100,
       months: Array.from({ length: 12 }, () => 100),
     })
 
     const moved = store.editItem({
-      itemId: item.id,
-      categoryId: incomeCategory.id,
+      itemId: item!.id,
+      categoryId: incomeCategory!.id,
       name: 'Transfer Me',
       baseAmount: 100,
       months: Array.from({ length: 12 }, () => 100),
@@ -258,12 +260,12 @@ describe('budgetStore', () => {
     expect(moved).toBe(true)
 
     const sourceHasItem = getExpenseSection(store).categories
-      .find((category) => category.id === expenseCategory.id)
-      .items.some((candidate) => candidate.id === item.id)
+      .find((category) => category.id === expenseCategory!.id)!
+      .items.some((candidate) => candidate.id === item!.id)
 
     const destinationHasItem = getIncomeSection(store).categories
-      .find((category) => category.id === incomeCategory.id)
-      .items.some((candidate) => candidate.id === item.id)
+      .find((category) => category.id === incomeCategory!.id)!
+      .items.some((candidate) => candidate.id === item!.id)
 
     expect(sourceHasItem).toBe(false)
     expect(destinationHasItem).toBe(true)
@@ -287,8 +289,8 @@ describe('budgetStore', () => {
     const createdCategory = incomeSection.categories.find((category) => category.name === 'Freelance')
 
     expect(createdCategory).toBeTruthy()
-    expect(item.categoryId).toBe(createdCategory.id)
-    expect(createdCategory.items.some((candidate) => candidate.id === item.id)).toBe(true)
+    expect(item!.categoryId).toBe(createdCategory!.id)
+    expect(createdCategory!.items.some((candidate) => candidate.id === item!.id)).toBe(true)
   })
 
   it('creates and moves to a new category while editing an item', () => {
@@ -296,14 +298,14 @@ describe('budgetStore', () => {
     const expenseCategory = store.addCategory({ sectionType: 'expense', name: 'Household' })
 
     const item = store.addItem({
-      categoryId: expenseCategory.id,
+      categoryId: expenseCategory!.id,
       name: 'Supplies',
       baseAmount: 40,
       months: Array.from({ length: 12 }, () => 40),
     })
 
     const updated = store.editItem({
-      itemId: item.id,
+      itemId: item!.id,
       categoryId: '',
       categoryName: 'Side Hustle',
       sectionType: 'income',
@@ -315,15 +317,15 @@ describe('budgetStore', () => {
     expect(updated).toBe(true)
 
     const sourceHasItem = getExpenseSection(store).categories
-      .find((category) => category.id === expenseCategory.id)
-      .items.some((candidate) => candidate.id === item.id)
+      .find((category) => category.id === expenseCategory!.id)!
+      .items.some((candidate) => candidate.id === item!.id)
 
     const incomeSection = getIncomeSection(store)
     const newCategory = incomeSection.categories.find((category) => category.name === 'Side Hustle')
 
     expect(sourceHasItem).toBe(false)
     expect(newCategory).toBeTruthy()
-    expect(newCategory.items.some((candidate) => candidate.id === item.id)).toBe(true)
+    expect(newCategory!.items.some((candidate) => candidate.id === item!.id)).toBe(true)
   })
 
   it('returns false for copy operations when source year does not exist', () => {
@@ -339,7 +341,7 @@ describe('budgetStore', () => {
   it('handles invalid category/item operations with guard returns', () => {
     const store = useBudgetStore()
 
-    expect(store.addCategory({ sectionType: 'unknown', name: 'X' })).toBeNull()
+    expect(store.addCategory({ sectionType: 'unknown' as never, name: 'X' })).toBeNull()
     expect(store.addCategory({ sectionType: 'expense', name: '   ' })).toBeNull()
     expect(store.editCategory({ categoryId: 'missing', name: 'Updated' })).toBe(false)
     expect(store.deleteCategory('missing')).toBe(false)

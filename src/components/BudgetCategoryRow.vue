@@ -1,22 +1,25 @@
-<script setup>
+<script setup lang="ts">
 import { ref, watch } from 'vue'
+import type { BudgetCategory, Totals } from '../types/budget'
 
-const props = defineProps({
-  category: {
-    type: Object,
-    required: true,
+const props = withDefaults(
+  defineProps<{
+    category: BudgetCategory
+    totals: Totals
+    isEditing?: boolean
+  }>(),
+  {
+    isEditing: false,
   },
-  totals: {
-    type: Object,
-    required: true,
-  },
-  isEditing: {
-    type: Boolean,
-    default: false,
-  },
-})
+)
 
-const emit = defineEmits(['toggle', 'start-edit', 'save-edit', 'cancel-edit', 'delete'])
+const emit = defineEmits<{
+  (event: 'toggle', categoryId: string): void
+  (event: 'start-edit', categoryId: string): void
+  (event: 'save-edit', payload: { categoryId: string; name: string }): void
+  (event: 'cancel-edit'): void
+  (event: 'delete', categoryId: string): void
+}>()
 
 const draftName = ref('')
 
@@ -42,7 +45,7 @@ const onSaveEdit = () => {
   emit('save-edit', { categoryId: props.category.id, name: draftName.value.trim() })
 }
 
-const currency = (value) => Number(value).toLocaleString('en-US', { maximumFractionDigits: 0 })
+const currency = (value: number) => Number(value).toLocaleString('en-US', { maximumFractionDigits: 0 })
 </script>
 
 <template>

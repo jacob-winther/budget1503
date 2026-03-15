@@ -1,11 +1,22 @@
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, type ComputedRef, type Ref } from 'vue'
 import { defineStore } from 'pinia'
+import type {
+  BudgetCategory,
+  BudgetData,
+  BudgetItem,
+  BudgetSection,
+  SaveCategoryPayload,
+  SaveItemPayload,
+  SectionType,
+  Totals,
+  YearData,
+} from '../types/budget'
 
 const STORAGE_KEY = 'budget-app-data-v1'
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-const createId = () => {
+const createId = (): string => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
     return crypto.randomUUID()
   }
@@ -13,14 +24,14 @@ const createId = () => {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`
 }
 
-const clone = (value) => JSON.parse(JSON.stringify(value))
+const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T
 
-const toNumber = (value) => {
+const toNumber = (value: unknown): number => {
   const number = Number(value)
   return Number.isFinite(number) ? number : 0
 }
 
-const normalizeMonths = (baseAmount = 0, months = []) => {
+const normalizeMonths = (baseAmount = 0, months: unknown[] = []): number[] => {
   if (!Array.isArray(months) || months.length !== 12) {
     return Array.from({ length: 12 }, () => toNumber(baseAmount))
   }
@@ -28,11 +39,11 @@ const normalizeMonths = (baseAmount = 0, months = []) => {
   return months.map((monthValue) => toNumber(monthValue))
 }
 
-const itemYearTotal = (item) => item.months.reduce((sum, value) => sum + toNumber(value), 0)
+const itemYearTotal = (item: BudgetItem): number => item.months.reduce((sum, value) => sum + toNumber(value), 0)
 
-const itemMonthlyAverage = (item) => itemYearTotal(item) / 12
+const itemMonthlyAverage = (item: BudgetItem): number => itemYearTotal(item) / 12
 
-const categoryTotals = (category) => {
+const categoryTotals = (category: BudgetCategory): Totals => {
   const monthly = Array.from({ length: 12 }, () => 0)
 
   for (const item of category.items) {
@@ -50,7 +61,7 @@ const categoryTotals = (category) => {
   }
 }
 
-const sectionTotals = (section) => {
+const sectionTotals = (section: Pick<BudgetSection, 'categories'>): Totals => {
   const monthly = Array.from({ length: 12 }, () => 0)
 
   for (const category of section.categories) {
@@ -69,7 +80,7 @@ const sectionTotals = (section) => {
   }
 }
 
-const createEmptyYear = () => ({
+const createEmptyYear = (): YearData => ({
   sections: [
     {
       id: createId(),
@@ -88,7 +99,7 @@ const createEmptyYear = () => ({
   ],
 })
 
-const createSeedData = (year) => {
+const createSeedData = (year: number): BudgetData => {
   const expenseCategoryId = createId()
   const incomeCategoryId = createId()
 
@@ -151,13 +162,13 @@ const createSeedData = (year) => {
   }
 }
 
-const ensureYearExists = (state, year) => {
+const ensureYearExists = (state: BudgetData, year: number): void => {
   if (!state[year]) {
     state[year] = createEmptyYear()
   }
 }
 
-const remapYearIds = (yearData, copiedFromYear = null) => {
+const remapYearIds = (yearData: YearData, copiedFromYear: number | null = null): YearData => {
   const cloned = clone(yearData)
 
   cloned.sections = cloned.sections.map((section) => ({
@@ -183,7 +194,10 @@ const remapYearIds = (yearData, copiedFromYear = null) => {
   return cloned
 }
 
-const findCategory = (sections, categoryId) => {
+const findCategory = (
+  sections: BudgetSection[],
+  categoryId: string,
+): { section: BudgetSection; category: BudgetCategory } | null => {
   for (const section of sections) {
     for (const category of section.categories) {
       if (category.id === categoryId) {
@@ -195,7 +209,10 @@ const findCategory = (sections, categoryId) => {
   return null
 }
 
-const findItem = (sections, itemId) => {
+const findItem = (
+  sections: BudgetSection[],
+  itemId: string,
+): { section: BudgetSection; category: BudgetCategory; item: BudgetItem } | null => {
   for (const section of sections) {
     for (const category of section.categories) {
       for (const item of category.items) {
@@ -209,7 +226,12 @@ const findItem = (sections, itemId) => {
   return null
 }
 
-const normalizeName = (value) => String(value ?? '').trim()
+const normalizeName = (value: unknown): string => String(value ?? '').trim()
+
+interface SerializedBudgetStore {
+  currentYear: number
+  data: BudgetData
+}
 
 export const useBudgetStore = defineStore('budget', () => {
   const currentYear = ref(new Date().getFullYear())
@@ -233,14 +255,14 @@ export const useBudgetStore = defineStore('budget', () => {
 
   const differenceYearly = computed(() => monthlyDifference.value.reduce((sum, value) => sum + value, 0))
 
-  const serialize = () => {
+  const serialize = (): SerializedBudgetStore => {
     return {
       currentYear: currentYear.value,
       data: data.value,
     }
   }
 
-  const saveToStorage = () => {
+  const saveToStorage = (): void => {
     if (typeof localStorage === 'undefined') {
       return
     }
@@ -248,7 +270,7 @@ export const useBudgetStore = defineStore('budget', () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(serialize()))
   }
 
-  const loadFromStorage = () => {
+  const loadFromStorage = (): void => {
     if (typeof localStorage === 'undefined') {
       return
     }
@@ -260,7 +282,7 @@ export const useBudgetStore = defineStore('budget', () => {
     }
 
     try {
-      const parsed = JSON.parse(raw)
+      const parsed = JSON.parse(raw) as Partial<SerializedBudgetStore>
 
       if (parsed && typeof parsed === 'object' && parsed.data) {
         data.value = parsed.data
@@ -286,15 +308,15 @@ export const useBudgetStore = defineStore('budget', () => {
     { deep: true },
   )
 
-  const setYear = (year) => {
+  const setYear = (year: number): void => {
     currentYear.value = Number(year)
     ensureYearExists(data.value, currentYear.value)
   }
 
-  const goToPreviousYear = () => setYear(currentYear.value - 1)
-  const goToNextYear = () => setYear(currentYear.value + 1)
+  const goToPreviousYear = (): void => setYear(currentYear.value - 1)
+  const goToNextYear = (): void => setYear(currentYear.value + 1)
 
-  const copyPreviousYear = () => {
+  const copyPreviousYear = (): boolean => {
     const sourceYear = currentYear.value - 1
 
     if (!data.value[sourceYear]) {
@@ -305,7 +327,7 @@ export const useBudgetStore = defineStore('budget', () => {
     return true
   }
 
-  const copyYear = (fromYear, toYear) => {
+  const copyYear = (fromYear: number, toYear: number): boolean => {
     if (!data.value[fromYear]) {
       return false
     }
@@ -314,7 +336,7 @@ export const useBudgetStore = defineStore('budget', () => {
     return true
   }
 
-  const isItemCopiedFromYear = (itemId) => {
+  const isItemCopiedFromYear = (itemId: string): boolean => {
     const located = findItem(sections.value, itemId)
 
     if (!located) {
@@ -324,7 +346,7 @@ export const useBudgetStore = defineStore('budget', () => {
     return Number.isFinite(Number(located.item.copiedFromYear))
   }
 
-  const getRemainingCopiedMonthCount = (itemId, excludedMonthIndex = -1) => {
+  const getRemainingCopiedMonthCount = (itemId: string, excludedMonthIndex = -1): number => {
     const located = findItem(sections.value, itemId)
 
     if (!located) {
@@ -346,7 +368,7 @@ export const useBudgetStore = defineStore('budget', () => {
     }, 0)
   }
 
-  const fillRemainingCopiedMonthsFrom = (itemId, sourceMonthIndex) => {
+  const fillRemainingCopiedMonthsFrom = (itemId: string, sourceMonthIndex: number): number => {
     const located = findItem(sections.value, itemId)
 
     if (!located) {
@@ -376,7 +398,7 @@ export const useBudgetStore = defineStore('budget', () => {
     return updatedCount
   }
 
-  const addCategory = ({ sectionType, name }) => {
+  const addCategory = ({ sectionType, name }: { sectionType: SectionType; name: string }): BudgetCategory | null => {
     const section = sections.value.find((candidate) => candidate.type === sectionType)
 
     if (!section) {
@@ -389,7 +411,7 @@ export const useBudgetStore = defineStore('budget', () => {
       return null
     }
 
-    const category = {
+    const category: BudgetCategory = {
       id: createId(),
       name: normalizedName,
       collapsed: false,
@@ -400,7 +422,11 @@ export const useBudgetStore = defineStore('budget', () => {
     return category
   }
 
-  const editCategory = ({ categoryId, name, sectionType }) => {
+  const editCategory = ({ categoryId, name, sectionType }: SaveCategoryPayload): boolean => {
+    if (!categoryId) {
+      return false
+    }
+
     const found = findCategory(sections.value, categoryId)
 
     if (!found) {
@@ -428,7 +454,7 @@ export const useBudgetStore = defineStore('budget', () => {
     return true
   }
 
-  const deleteCategory = (categoryId) => {
+  const deleteCategory = (categoryId: string): boolean => {
     for (const section of sections.value) {
       const existingIndex = section.categories.findIndex((category) => category.id === categoryId)
 
@@ -442,12 +468,24 @@ export const useBudgetStore = defineStore('budget', () => {
     return false
   }
 
-  const resolveCategoryForItem = ({ categoryId, categoryName, sectionType }) => {
+  const resolveCategoryForItem = ({
+    categoryId,
+    categoryName,
+    sectionType,
+  }: {
+    categoryId?: string
+    categoryName?: string
+    sectionType?: SectionType
+  }): { section: BudgetSection; category: BudgetCategory } | null => {
     if (categoryId) {
       return findCategory(sections.value, categoryId)
     }
 
-    const createdCategory = addCategory({ sectionType, name: categoryName })
+    if (!sectionType) {
+      return null
+    }
+
+    const createdCategory = addCategory({ sectionType, name: categoryName ?? '' })
 
     if (!createdCategory) {
       return null
@@ -456,7 +494,7 @@ export const useBudgetStore = defineStore('budget', () => {
     return findCategory(sections.value, createdCategory.id)
   }
 
-  const addItem = ({ categoryId, categoryName, sectionType, name, baseAmount, months }) => {
+  const addItem = ({ categoryId, categoryName, sectionType, name, baseAmount, months }: SaveItemPayload): BudgetItem | null => {
     const found = resolveCategoryForItem({ categoryId, categoryName, sectionType })
 
     if (!found) {
@@ -469,7 +507,7 @@ export const useBudgetStore = defineStore('budget', () => {
       return null
     }
 
-    const item = {
+    const item: BudgetItem = {
       id: createId(),
       categoryId: found.category.id,
       name: normalizedItemName,
@@ -481,7 +519,11 @@ export const useBudgetStore = defineStore('budget', () => {
     return item
   }
 
-  const editItem = ({ itemId, categoryId, categoryName, sectionType, name, baseAmount, months }) => {
+  const editItem = ({ itemId, categoryId, categoryName, sectionType, name, baseAmount, months }: SaveItemPayload): boolean => {
+    if (!itemId) {
+      return false
+    }
+
     const located = findItem(sections.value, itemId)
 
     if (!located) {
@@ -517,7 +559,7 @@ export const useBudgetStore = defineStore('budget', () => {
     return true
   }
 
-  const deleteItem = (itemId) => {
+  const deleteItem = (itemId: string): boolean => {
     for (const section of sections.value) {
       for (const category of section.categories) {
         const itemIndex = category.items.findIndex((item) => item.id === itemId)
@@ -533,7 +575,7 @@ export const useBudgetStore = defineStore('budget', () => {
     return false
   }
 
-  const toggleSectionCollapse = (sectionId) => {
+  const toggleSectionCollapse = (sectionId: string): void => {
     const section = sections.value.find((candidate) => candidate.id === sectionId)
 
     if (section) {
@@ -541,7 +583,7 @@ export const useBudgetStore = defineStore('budget', () => {
     }
   }
 
-  const toggleCategoryCollapse = (categoryId) => {
+  const toggleCategoryCollapse = (categoryId: string): void => {
     const found = findCategory(sections.value, categoryId)
 
     if (found) {
@@ -549,10 +591,10 @@ export const useBudgetStore = defineStore('budget', () => {
     }
   }
 
-  const getCategoryTotals = (category) => categoryTotals(category)
-  const getSectionTotals = (section) => sectionTotals(section)
-  const getItemYearTotal = (item) => itemYearTotal(item)
-  const getItemMonthlyAverage = (item) => itemMonthlyAverage(item)
+  const getCategoryTotals = (category: BudgetCategory): Totals => categoryTotals(category)
+  const getSectionTotals = (section: BudgetSection): Totals => sectionTotals(section)
+  const getItemYearTotal = (item: BudgetItem): number => itemYearTotal(item)
+  const getItemMonthlyAverage = (item: BudgetItem): number => itemMonthlyAverage(item)
 
   return {
     MONTHS,

@@ -1,16 +1,10 @@
-<script setup>
-defineProps({
-  monthly: {
-    type: Array,
-    required: true,
-  },
-  yearly: {
-    type: Number,
-    required: true,
-  },
-})
+<script setup lang="ts">
+defineProps<{
+  monthly: number[]
+  yearly: number
+}>()
 
-const currency = (value) => Number(value).toLocaleString('en-US', { maximumFractionDigits: 0 })
+const currency = (value: number) => Number(value).toLocaleString('en-US', { maximumFractionDigits: 0 })
 </script>
 
 <template>

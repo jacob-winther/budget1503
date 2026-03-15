@@ -1,43 +1,41 @@
-<script setup>
+<script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
 import Select from 'primevue/select'
+import type { BudgetItem, FlatCategoryOption, SaveItemPayload, SectionType } from '../types/budget'
 
-const props = defineProps({
-  visible: {
-    type: Boolean,
-    required: true,
+const props = withDefaults(
+  defineProps<{
+    visible: boolean
+    mode?: 'create' | 'edit'
+    item?: BudgetItem | null
+    categories: FlatCategoryOption[]
+  }>(),
+  {
+    mode: 'create',
+    item: null,
   },
-  mode: {
-    type: String,
-    default: 'create',
-  },
-  item: {
-    type: Object,
-    default: null,
-  },
-  categories: {
-    type: Array,
-    required: true,
-  },
-})
+)
 
-const emit = defineEmits(['save', 'close'])
+const emit = defineEmits<{
+  (event: 'save', payload: SaveItemPayload): void
+  (event: 'close'): void
+}>()
 
 const NEW_CATEGORY_VALUE = '__new_category__'
 
 const selectedCategoryId = ref('')
 const newCategoryName = ref('')
-const newCategorySectionType = ref('expense')
+const newCategorySectionType = ref<SectionType>('expense')
 const name = ref('')
 const baseAmount = ref(0)
 const useOverrides = ref(false)
 const months = ref(Array.from({ length: 12 }, () => 0))
 
-const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const labels: string[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 const categoryOptions = computed(() => [
   ...props.categories.map((category) => ({ label: category.name, value: category.id })),
@@ -56,11 +54,12 @@ const resetState = () => {
   months.value = Array.from({ length: 12 }, () => 0)
 
   if (props.item) {
-    selectedCategoryId.value = props.item.categoryId
-    name.value = props.item.name
-    baseAmount.value = props.item.baseAmount
-    months.value = [...props.item.months]
-    useOverrides.value = props.item.months.some((value) => Number(value) !== Number(props.item.baseAmount))
+    const item = props.item
+    selectedCategoryId.value = item.categoryId
+    name.value = item.name
+    baseAmount.value = item.baseAmount
+    months.value = [...item.months]
+    useOverrides.value = item.months.some((value) => Number(value) !== Number(item.baseAmount))
   }
 }
 

@@ -1,27 +1,21 @@
-<script setup>
+<script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import Select from 'primevue/select'
 
-const props = defineProps({
-  visible: {
-    type: Boolean,
-    required: true,
-  },
-  currentYear: {
-    type: Number,
-    required: true,
-  },
-  years: {
-    type: Array,
-    required: true,
-  },
-})
+const props = defineProps<{
+  visible: boolean
+  currentYear: number
+  years: number[]
+}>()
 
-const emit = defineEmits(['confirm', 'close'])
+const emit = defineEmits<{
+  (event: 'confirm', payload: { fromYear: number; toYear: number }): void
+  (event: 'close'): void
+}>()
 
-const selectedFromYear = ref(null)
+const selectedFromYear = ref<number | null>(null)
 
 const yearOptions = computed(() => props.years.map((year) => ({ label: String(year), value: year })))
 

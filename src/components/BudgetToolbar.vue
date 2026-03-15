@@ -1,20 +1,17 @@
-<script setup>
+<script setup lang="ts">
 import Button from 'primevue/button'
 
-defineProps({
-  year: {
-    type: Number,
-    required: true,
-  },
-})
+defineProps<{
+  year: number
+}>()
 
-const emit = defineEmits([
-  'prev-year',
-  'next-year',
-  'copy-prev-year',
-  'new-category',
-  'new-item',
-])
+const emit = defineEmits<{
+  (event: 'prev-year'): void
+  (event: 'next-year'): void
+  (event: 'copy-prev-year'): void
+  (event: 'new-category'): void
+  (event: 'new-item'): void
+}>()
 </script>
 
 <template>

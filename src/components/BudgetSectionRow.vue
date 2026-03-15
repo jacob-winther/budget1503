@@ -1,18 +1,16 @@
-<script setup>
-defineProps({
-  section: {
-    type: Object,
-    required: true,
-  },
-  totals: {
-    type: Object,
-    required: true,
-  },
-})
+<script setup lang="ts">
+import type { BudgetSection, Totals } from '../types/budget'
 
-const emit = defineEmits(['toggle'])
+defineProps<{
+  section: BudgetSection
+  totals: Totals
+}>()
 
-const currency = (value) => Number(value).toLocaleString('en-US', { maximumFractionDigits: 0 })
+const emit = defineEmits<{
+  (event: 'toggle', sectionId: string): void
+}>()
+
+const currency = (value: number) => Number(value).toLocaleString('en-US', { maximumFractionDigits: 0 })
 </script>
 
 <template>

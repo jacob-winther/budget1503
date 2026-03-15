@@ -1,29 +1,30 @@
-<script setup>
+<script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import Select from 'primevue/select'
+import type { SaveCategoryPayload, SectionType } from '../types/budget'
 
-const props = defineProps({
-  visible: {
-    type: Boolean,
-    required: true,
+const props = withDefaults(
+  defineProps<{
+    visible: boolean
+    mode?: 'create' | 'edit'
+    category?: { id: string; name: string; sectionType?: SectionType } | null
+  }>(),
+  {
+    mode: 'create',
+    category: null,
   },
-  mode: {
-    type: String,
-    default: 'create',
-  },
-  category: {
-    type: Object,
-    default: null,
-  },
-})
+)
 
-const emit = defineEmits(['save', 'close'])
+const emit = defineEmits<{
+  (event: 'save', payload: SaveCategoryPayload): void
+  (event: 'close'): void
+}>()
 
 const name = ref('')
-const sectionType = ref('expense')
+const sectionType = ref<SectionType>('expense')
 
 const sectionOptions = computed(() => [
   { label: 'Expenses', value: 'expense' },

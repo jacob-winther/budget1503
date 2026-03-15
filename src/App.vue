@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { computed, ref } from 'vue'
 import BudgetToolbar from './components/BudgetToolbar.vue'
 import BudgetTable from './components/BudgetTable.vue'
@@ -6,22 +6,23 @@ import ItemFormDialog from './components/ItemFormDialog.vue'
 import CategoryFormDialog from './components/CategoryFormDialog.vue'
 import CopyYearDialog from './components/CopyYearDialog.vue'
 import { useBudgetStore } from './stores/budgetStore'
+import type { BudgetItem, FlatCategoryOption, SaveCategoryPayload, SaveItemPayload } from './types/budget'
 
 const store = useBudgetStore()
 
 const showItemDialog = ref(false)
-const itemDialogMode = ref('create')
-const editingItem = ref(null)
+const itemDialogMode = ref<'create' | 'edit'>('create')
+const editingItem = ref<BudgetItem | null>(null)
 
 const showCategoryDialog = ref(false)
-const categoryDialogMode = ref('create')
+const categoryDialogMode = ref<'create' | 'edit'>('create')
 const editingCategory = ref(null)
-const editingCategoryId = ref(null)
-const editingItemId = ref(null)
+const editingCategoryId = ref<string | null>(null)
+const editingItemId = ref<string | null>(null)
 
 const showCopyYearDialog = ref(false)
 
-const flatCategories = computed(() => {
+const flatCategories = computed<FlatCategoryOption[]>(() => {
   return store.sections.flatMap((section) =>
     section.categories.map((category) => ({
       id: category.id,
@@ -52,7 +53,7 @@ const openNewCategoryDialog = () => {
   showCategoryDialog.value = true
 }
 
-const onSaveItem = (payload) => {
+const onSaveItem = (payload: SaveItemPayload) => {
   if (itemDialogMode.value === 'edit') {
     store.editItem(payload)
   } else {
@@ -62,7 +63,7 @@ const onSaveItem = (payload) => {
   showItemDialog.value = false
 }
 
-const startInlineCategoryEdit = (categoryId) => {
+const startInlineCategoryEdit = (categoryId: string) => {
   editingCategoryId.value = categoryId
   editingItemId.value = null
 }
@@ -71,7 +72,7 @@ const cancelInlineCategoryEdit = () => {
   editingCategoryId.value = null
 }
 
-const saveInlineCategoryEdit = ({ categoryId, name }) => {
+const saveInlineCategoryEdit = ({ categoryId, name }: { categoryId: string; name: string }) => {
   const trimmedName = String(name ?? '').trim()
 
   if (!trimmedName) {
@@ -88,7 +89,7 @@ const saveInlineCategoryEdit = ({ categoryId, name }) => {
   }
 }
 
-const deleteInlineCategory = (categoryId) => {
+const deleteInlineCategory = (categoryId: string) => {
   const confirmation = window.confirm('Delete selected entry?')
 
   if (!confirmation) {
@@ -102,7 +103,7 @@ const deleteInlineCategory = (categoryId) => {
   }
 }
 
-const startInlineItemEdit = (itemId) => {
+const startInlineItemEdit = (itemId: string) => {
   editingItemId.value = itemId
   editingCategoryId.value = null
 }
@@ -111,7 +112,7 @@ const cancelInlineItemEdit = () => {
   editingItemId.value = null
 }
 
-const saveInlineItemEdit = (payload) => {
+const saveInlineItemEdit = (payload: SaveItemPayload) => {
   const updated = store.editItem(payload)
 
   if (updated) {
@@ -119,7 +120,7 @@ const saveInlineItemEdit = (payload) => {
   }
 }
 
-const deleteInlineItem = (itemId) => {
+const deleteInlineItem = (itemId: string) => {
   const confirmation = window.confirm('Delete selected entry?')
 
   if (!confirmation) {
@@ -133,11 +134,14 @@ const deleteInlineItem = (itemId) => {
   }
 }
 
-const onSaveCategory = (payload) => {
+const onSaveCategory = (payload: SaveCategoryPayload) => {
   if (categoryDialogMode.value === 'edit') {
     store.editCategory(payload)
   } else {
-    store.addCategory(payload)
+    store.addCategory({
+      sectionType: payload.sectionType ?? 'expense',
+      name: payload.name,
+    })
   }
 
   showCategoryDialog.value = false
@@ -151,7 +155,7 @@ const onCopyPreviousYear = () => {
   }
 }
 
-const onConfirmCopyYear = ({ fromYear, toYear }) => {
+const onConfirmCopyYear = ({ fromYear, toYear }: { fromYear: number; toYear: number }) => {
   store.copyYear(fromYear, toYear)
   showCopyYearDialog.value = false
 }

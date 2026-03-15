@@ -1,10 +1,7 @@
-<script setup>
-defineProps({
-  months: {
-    type: Array,
-    required: true,
-  },
-})
+<script setup lang="ts">
+defineProps<{
+  months: string[]
+}>()
 </script>
 
 <template>

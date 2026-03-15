@@ -1,34 +1,42 @@
-<script setup>
+<script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import type { BudgetItem, SectionType } from '../types/budget'
 
-const props = defineProps({
-  item: {
-    type: Object,
-    required: true,
+const props = withDefaults(
+  defineProps<{
+    item: BudgetItem
+    sectionType?: SectionType
+    yearTotal: number
+    average: number
+    isEditing?: boolean
+  }>(),
+  {
+    sectionType: 'expense',
+    isEditing: false,
   },
-  sectionType: {
-    type: String,
-    default: 'expense',
-  },
-  yearTotal: {
-    type: Number,
-    required: true,
-  },
-  average: {
-    type: Number,
-    required: true,
-  },
-  isEditing: {
-    type: Boolean,
-    default: false,
-  },
-})
+)
 
-const emit = defineEmits(['start-edit', 'save-edit', 'cancel-edit', 'delete'])
+const emit = defineEmits<{
+  (event: 'start-edit', itemId: string): void
+  (
+    event: 'save-edit',
+    payload: {
+      itemId: string
+      categoryId: string
+      name: string
+      baseAmount: number
+      months: number[]
+      changedMonthIndexes: number[]
+      editedMonthIndex: number | null
+    },
+  ): void
+  (event: 'cancel-edit'): void
+  (event: 'delete', itemId: string): void
+}>()
 
 const draftName = ref('')
 const draftMonths = ref(Array.from({ length: 12 }, () => 0))
-const inlineNudge = ref(null)
+const inlineNudge = ref<{ monthIndex: number; remainingCount: number } | null>(null)
 
 watch(
   () => props.isEditing,
@@ -44,7 +52,7 @@ watch(
 
 watch(
   () => props.item,
-  (item) => {
+  (item: BudgetItem) => {
     if (props.isEditing) {
       draftName.value = item.name
       draftMonths.value = item.months.map((value) => Number(value ?? 0))
@@ -59,7 +67,7 @@ const draftAverage = computed(() => draftYearTotal.value / 12)
 
 const originalMonths = computed(() => props.item.months.map((value) => Number(value ?? 0)))
 
-const onMonthFocus = (index) => {
+const onMonthFocus = (index: number) => {
   if (!props.isEditing) {
     return
   }
@@ -70,7 +78,7 @@ const onMonthFocus = (index) => {
   }
 }
 
-const onMonthBlur = (index) => {
+const onMonthBlur = (index: number) => {
   if (inlineNudge.value?.monthIndex === index) {
     inlineNudge.value = null
   }
@@ -110,7 +118,7 @@ const onSaveEdit = () => {
   })
 }
 
-const currency = (value) => Number(value).toLocaleString('en-US', { maximumFractionDigits: 0 })
+const currency = (value: number) => Number(value).toLocaleString('en-US', { maximumFractionDigits: 0 })
 </script>
 
 <template>

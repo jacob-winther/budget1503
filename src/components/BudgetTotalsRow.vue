@@ -1,16 +1,12 @@
-<script setup>
-defineProps({
-  label: {
-    type: String,
-    required: true,
-  },
-  totals: {
-    type: Object,
-    required: true,
-  },
-})
+<script setup lang="ts">
+import type { Totals } from '../types/budget'
 
-const currency = (value) => Number(value).toLocaleString('en-US', { maximumFractionDigits: 0 })
+defineProps<{
+  label: string
+  totals: Totals
+}>()
+
+const currency = (value: number) => Number(value).toLocaleString('en-US', { maximumFractionDigits: 0 })
 </script>
 
 <template>

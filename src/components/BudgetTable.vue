@@ -1,74 +1,56 @@
-<script setup>
+<script setup lang="ts">
 import BudgetTableHeader from './BudgetTableHeader.vue'
 import BudgetSectionRow from './BudgetSectionRow.vue'
 import BudgetCategoryRow from './BudgetCategoryRow.vue'
 import BudgetItemRow from './BudgetItemRow.vue'
 import BudgetTotalsRow from './BudgetTotalsRow.vue'
 import BudgetDifferenceRow from './BudgetDifferenceRow.vue'
+import type { BudgetCategory, BudgetItem, BudgetSection, Totals } from '../types/budget'
 
-defineProps({
-  months: {
-    type: Array,
-    required: true,
+withDefaults(
+  defineProps<{
+    months: string[]
+    sections: BudgetSection[]
+    expenseTotals: Totals
+    incomeTotals: Totals
+    differenceMonthly: number[]
+    differenceYearly: number
+    editingCategoryId?: string | null
+    editingItemId?: string | null
+    getSectionTotals: (section: BudgetSection) => Totals
+    getCategoryTotals: (category: BudgetCategory) => Totals
+    getItemYearTotal: (item: BudgetItem) => number
+    getItemMonthlyAverage: (item: BudgetItem) => number
+  }>(),
+  {
+    editingCategoryId: null,
+    editingItemId: null,
   },
-  sections: {
-    type: Array,
-    required: true,
-  },
-  expenseTotals: {
-    type: Object,
-    required: true,
-  },
-  incomeTotals: {
-    type: Object,
-    required: true,
-  },
-  differenceMonthly: {
-    type: Array,
-    required: true,
-  },
-  differenceYearly: {
-    type: Number,
-    required: true,
-  },
-  editingCategoryId: {
-    type: String,
-    default: null,
-  },
-  editingItemId: {
-    type: String,
-    default: null,
-  },
-  getSectionTotals: {
-    type: Function,
-    required: true,
-  },
-  getCategoryTotals: {
-    type: Function,
-    required: true,
-  },
-  getItemYearTotal: {
-    type: Function,
-    required: true,
-  },
-  getItemMonthlyAverage: {
-    type: Function,
-    required: true,
-  },
-})
+)
 
-const emit = defineEmits([
-  'toggle-section',
-  'toggle-category',
-  'start-category-edit',
-  'save-category-edit',
-  'cancel-category-edit',
-  'delete-category',
-  'start-item-edit',
-  'save-item-edit',
-  'cancel-item-edit',
-  'delete-item',
-])
+const emit = defineEmits<{
+  (event: 'toggle-section', sectionId: string): void
+  (event: 'toggle-category', categoryId: string): void
+  (event: 'start-category-edit', categoryId: string): void
+  (event: 'save-category-edit', payload: { categoryId: string; name: string }): void
+  (event: 'cancel-category-edit'): void
+  (event: 'delete-category', categoryId: string): void
+  (event: 'start-item-edit', itemId: string): void
+  (
+    event: 'save-item-edit',
+    payload: {
+      itemId: string
+      categoryId: string
+      name: string
+      baseAmount: number
+      months: number[]
+      changedMonthIndexes: number[]
+      editedMonthIndex: number | null
+    },
+  ): void
+  (event: 'cancel-item-edit'): void
+  (event: 'delete-item', itemId: string): void
+}>()
 </script>
 
 <template>

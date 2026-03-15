@@ -10,6 +10,7 @@ describe('BudgetCategoryRow', () => {
           id: 'cat-1',
           name: 'Fixed Costs',
           collapsed: false,
+          items: [],
         },
         totals: {
           monthly: Array.from({ length: 12 }, () => 100),
@@ -21,7 +22,7 @@ describe('BudgetCategoryRow', () => {
 
     await wrapper.find('button').trigger('click')
     expect(wrapper.emitted('toggle')).toBeTruthy()
-    expect(wrapper.emitted('toggle')[0]).toEqual(['cat-1'])
+    expect(wrapper.emitted('toggle')?.[0]).toEqual(['cat-1'])
   })
 
   it('supports inline editing events', async () => {
@@ -31,6 +32,7 @@ describe('BudgetCategoryRow', () => {
           id: 'cat-1',
           name: 'Fixed Costs',
           collapsed: false,
+          items: [],
         },
         totals: {
           monthly: Array.from({ length: 12 }, () => 100),
@@ -49,7 +51,7 @@ describe('BudgetCategoryRow', () => {
     await wrapper.findAll('.inline-action-btn')[0].trigger('click')
 
     expect(wrapper.emitted('save-edit')).toBeTruthy()
-    expect(wrapper.emitted('save-edit')[0]).toEqual([{ categoryId: 'cat-1', name: 'Renamed Category' }])
+    expect(wrapper.emitted('save-edit')?.[0]).toEqual([{ categoryId: 'cat-1', name: 'Renamed Category' }])
   })
 
   it('emits delete from row action', async () => {
@@ -59,6 +61,7 @@ describe('BudgetCategoryRow', () => {
           id: 'cat-1',
           name: 'Fixed Costs',
           collapsed: false,
+          items: [],
         },
         totals: {
           monthly: Array.from({ length: 12 }, () => 100),
@@ -70,6 +73,6 @@ describe('BudgetCategoryRow', () => {
 
     await wrapper.findAll('.row-actions .inline-action-btn')[1].trigger('click')
     expect(wrapper.emitted('delete')).toBeTruthy()
-    expect(wrapper.emitted('delete')[0]).toEqual(['cat-1'])
+    expect(wrapper.emitted('delete')?.[0]).toEqual(['cat-1'])
   })
 })

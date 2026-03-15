@@ -8,7 +8,9 @@ describe('BudgetItemRow', () => {
       props: {
         item: {
           id: 'item-1',
+          categoryId: 'cat-1',
           name: 'Internet',
+          baseAmount: 50,
           months: Array.from({ length: 12 }, () => 50),
         },
         yearTotal: 600,
@@ -24,7 +26,7 @@ describe('BudgetItemRow', () => {
 
     await wrapper.findAll('.row-actions .inline-action-btn')[1].trigger('click')
     expect(wrapper.emitted('delete')).toBeTruthy()
-    expect(wrapper.emitted('delete')[0]).toEqual(['item-1'])
+    expect(wrapper.emitted('delete')?.[0]).toEqual(['item-1'])
   })
 
   it('emits save-edit in editing mode', async () => {
@@ -34,6 +36,7 @@ describe('BudgetItemRow', () => {
           id: 'item-1',
           categoryId: 'cat-1',
           name: 'Internet',
+          baseAmount: 50,
           months: Array.from({ length: 12 }, () => 50),
         },
         yearTotal: 600,
@@ -48,10 +51,17 @@ describe('BudgetItemRow', () => {
     await wrapper.find('.inline-action-btn').trigger('click')
 
     expect(wrapper.emitted('save-edit')).toBeTruthy()
-    expect(wrapper.emitted('save-edit')[0][0].itemId).toBe('item-1')
-    expect(wrapper.emitted('save-edit')[0][0].name).toBe('Updated Internet')
-    expect(wrapper.emitted('save-edit')[0][0].editedMonthIndex).toBe(2)
-    expect(wrapper.emitted('save-edit')[0][0].changedMonthIndexes).toEqual([2])
+    const savePayload = wrapper.emitted('save-edit')?.[0]?.[0] as {
+      itemId: string
+      name: string
+      editedMonthIndex: number | null
+      changedMonthIndexes: number[]
+    }
+
+    expect(savePayload.itemId).toBe('item-1')
+    expect(savePayload.name).toBe('Updated Internet')
+    expect(savePayload.editedMonthIndex).toBe(2)
+    expect(savePayload.changedMonthIndexes).toEqual([2])
   })
 
   it('shows nudge while editing and fills draft months', async () => {
@@ -61,6 +71,7 @@ describe('BudgetItemRow', () => {
           id: 'item-1',
           categoryId: 'cat-1',
           name: 'Internet',
+          baseAmount: 50,
           months: Array.from({ length: 12 }, () => 50),
         },
         yearTotal: 600,
@@ -77,7 +88,7 @@ describe('BudgetItemRow', () => {
     await nudgeButtons[0].trigger('mousedown')
 
     const monthInputs = wrapper.findAll('.inline-amount-input')
-    const allValues = monthInputs.map((input) => Number(input.element.value))
+    const allValues = monthInputs.map((input) => Number((input.element as HTMLInputElement).value))
     expect(allValues.every((value) => value === 120)).toBe(true)
 
     expect(wrapper.find('.item-inline-nudge-popover').exists()).toBe(true)
