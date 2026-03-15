@@ -39,6 +39,18 @@ const availableCopyYears = computed(() => {
     .sort((a, b) => b - a)
 })
 
+const currentYearHasEntries = computed(() => {
+  return store.sections.some((section) => section.categories.some((category) => category.items.length > 0))
+})
+
+const confirmOverwriteCopy = (): boolean => {
+  if (!currentYearHasEntries.value) {
+    return true
+  }
+
+  return window.confirm('Current year already has budget entries. Copying will overwrite them. Continue?')
+}
+
 const openNewItemDialog = () => {
   itemDialogMode.value = 'create'
   editingItem.value = null
@@ -148,6 +160,13 @@ const onSaveCategory = (payload: SaveCategoryPayload) => {
 }
 
 const onCopyPreviousYear = () => {
+  const previousYear = store.currentYear - 1
+  const hasPreviousYearData = availableCopyYears.value.includes(previousYear)
+
+  if (hasPreviousYearData && !confirmOverwriteCopy()) {
+    return
+  }
+
   const copied = store.copyPreviousYear()
 
   if (!copied && availableCopyYears.value.length > 0) {
@@ -156,6 +175,10 @@ const onCopyPreviousYear = () => {
 }
 
 const onConfirmCopyYear = ({ fromYear, toYear }: { fromYear: number; toYear: number }) => {
+  if (!confirmOverwriteCopy()) {
+    return
+  }
+
   store.copyYear(fromYear, toYear)
   showCopyYearDialog.value = false
 }

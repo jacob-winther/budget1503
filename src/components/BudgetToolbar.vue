@@ -20,11 +20,11 @@ const emit = defineEmits<{
       <Button icon="pi pi-angle-left" severity="secondary" text @click="emit('prev-year')" />
       <span class="year-label">{{ year }}</span>
       <Button icon="pi pi-angle-right" severity="secondary" text @click="emit('next-year')" />
-      <Button label="Copy Previous Year" severity="secondary" outlined @click="emit('copy-prev-year')" />
+      <Button label="Copy Previous Year" icon="pi pi-copy" @click="emit('copy-prev-year')" />
     </div>
 
     <div class="action-controls">
-      <Button label="New Category" icon="pi pi-folder-plus" severity="secondary" @click="emit('new-category')" />
+      <Button label="New Category" icon="pi pi-folder-plus" @click="emit('new-category')" />
       <Button label="New Entry" icon="pi pi-plus" @click="emit('new-item')" />
     </div>
   </div>
