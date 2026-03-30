@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { VueDraggable } from 'vue-draggable-plus'
 import BudgetTableHeader from './BudgetTableHeader.vue'
 import BudgetSectionRow from './BudgetSectionRow.vue'
 import BudgetCategoryRow from './BudgetCategoryRow.vue'
@@ -52,22 +53,15 @@ const emit = defineEmits<{
   ): void
   (event: 'cancel-item-edit'): void
   (event: 'delete-item', itemId: string): void
+  (event: 'move-item', payload: { itemId: string; newCategoryId: string }): void
 }>()
 
-// Stagger helpers for TransitionGroup
-function onRowBeforeEnter(el: Element) {
-  const index = parseInt((el as HTMLElement).dataset.index ?? '0', 10)
-  ;(el as HTMLElement).style.transitionDelay = `${index * 30}ms`
-}
-function onRowAfterEnter(el: Element) {
-  ;(el as HTMLElement).style.transitionDelay = ''
-}
-
-// New-row highlight flash
-function onItemEnter(el: Element) {
-  const row = el as HTMLElement
-  row.classList.add('row-new-highlight')
-  setTimeout(() => row.classList.remove('row-new-highlight'), 650)
+function onItemAdd(evt: { newDraggableIndex?: number }, category: BudgetCategory) {
+  const index = evt.newDraggableIndex ?? 0
+  const item = category.items[index]
+  if (item) {
+    emit('move-item', { itemId: item.id, newCategoryId: category.id })
+  }
 }
 </script>
 
@@ -75,21 +69,23 @@ function onItemEnter(el: Element) {
   <div class="table-wrap">
     <table class="budget-table">
       <BudgetTableHeader :months="months" />
-      <tbody>
-        <template v-for="section in sections" :key="section.id">
+
+      <template v-for="section in sections" :key="section.id">
+        <!-- Section row in its own tbody -->
+        <tbody>
           <BudgetSectionRow
             :section="section"
             :totals="getSectionTotals(section)"
             @toggle="emit('toggle-section', $event)"
             @add-category="emit('add-category', $event)"
           />
+        </tbody>
 
-          <!-- Categories animate in/out when section collapses/expands -->
-          <template v-for="(category, catIndex) in section.categories" :key="category.id">
-            <Transition name="row">
+        <template v-for="(category, catIndex) in section.categories" :key="category.id">
+          <!-- Category row in its own tbody (animates in/out with section collapse) -->
+          <Transition name="row">
+            <tbody v-if="!section.collapsed" :style="{ transitionDelay: `${catIndex * 30}ms` }">
               <BudgetCategoryRow
-                v-if="!section.collapsed"
-                :style="{ transitionDelay: `${catIndex * 30}ms` }"
                 :category="category"
                 :totals="getCategoryTotals(category)"
                 :is-editing="editingCategoryId === category.id"
@@ -100,33 +96,37 @@ function onItemEnter(el: Element) {
                 @cancel-edit="emit('cancel-category-edit')"
                 @delete="emit('delete-category', $event)"
               />
-            </Transition>
+            </tbody>
+          </Transition>
 
-            <!-- Items animate in/out when category collapses/expands, and on add/delete -->
-            <TransitionGroup
-              name="row"
-              @before-enter="onRowBeforeEnter"
-              @after-enter="onRowAfterEnter"
-              @enter="onItemEnter"
-            >
-              <BudgetItemRow
-                v-for="(item, itemIndex) in (category.collapsed || section.collapsed) ? [] : category.items"
-                :key="item.id"
-                :data-index="itemIndex"
-                :item="item"
-                :section-type="section.type"
-                :year-total="getItemYearTotal(item)"
-                :average="getItemMonthlyAverage(item)"
-                :is-editing="editingItemId === item.id"
-                @start-edit="emit('start-item-edit', $event)"
-                @save-edit="emit('save-item-edit', $event)"
-                @cancel-edit="emit('cancel-item-edit')"
-                @delete="emit('delete-item', $event)"
-              />
-            </TransitionGroup>
-          </template>
+          <!-- Items draggable list — one tbody per category -->
+          <VueDraggable
+            v-if="!category.collapsed && !section.collapsed"
+            v-model="category.items"
+            tag="tbody"
+            group="budget-items"
+            @add="(evt) => onItemAdd(evt, category)"
+          >
+            <BudgetItemRow
+              v-for="(item, itemIndex) in category.items"
+              :key="item.id"
+              :data-index="itemIndex"
+              :item="item"
+              :section-type="section.type"
+              :year-total="getItemYearTotal(item)"
+              :average="getItemMonthlyAverage(item)"
+              :is-editing="editingItemId === item.id"
+              @start-edit="emit('start-item-edit', $event)"
+              @save-edit="emit('save-item-edit', $event)"
+              @cancel-edit="emit('cancel-item-edit')"
+              @delete="emit('delete-item', $event)"
+            />
+          </VueDraggable>
         </template>
+      </template>
 
+      <!-- Totals in their own tbody -->
+      <tbody>
         <BudgetTotalsRow label="Total Expenses" :totals="expenseTotals" />
         <BudgetTotalsRow label="Total Income" :totals="incomeTotals" />
         <BudgetDifferenceRow :monthly="differenceMonthly" :yearly="differenceYearly" />

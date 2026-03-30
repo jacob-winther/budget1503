@@ -155,6 +155,10 @@ const deleteInlineItem = (itemId: string) => {
   }
 }
 
+const onMoveItem = ({ itemId, newCategoryId }: { itemId: string; newCategoryId: string }) => {
+  store.updateItemCategoryId(itemId, newCategoryId)
+}
+
 const onSaveCategory = (payload: SaveCategoryPayload) => {
   if (categoryDialogMode.value === 'edit') {
     store.editCategory(payload)
@@ -294,6 +298,7 @@ const onImportBudgetSelected = async (event: Event) => {
           @save-item-edit="saveInlineItemEdit"
           @cancel-item-edit="cancelInlineItemEdit"
           @delete-item="deleteInlineItem"
+          @move-item="onMoveItem"
         />
       </Transition>
     </div>
