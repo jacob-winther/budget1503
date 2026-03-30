@@ -56,11 +56,9 @@ const emit = defineEmits<{
   (event: 'move-item', payload: { itemId: string; newCategoryId: string }): void
 }>()
 
-function onItemAdd(evt: { newDraggableIndex?: number }, category: BudgetCategory) {
-  const index = evt.newDraggableIndex ?? 0
-  const item = category.items[index]
-  if (item) {
-    emit('move-item', { itemId: item.id, newCategoryId: category.id })
+function onItemAdd(evt: { data?: BudgetItem }, category: BudgetCategory) {
+  if (evt.data) {
+    emit('move-item', { itemId: evt.data.id, newCategoryId: category.id })
   }
 }
 </script>
@@ -108,9 +106,8 @@ function onItemAdd(evt: { newDraggableIndex?: number }, category: BudgetCategory
             @add="(evt) => onItemAdd(evt, category)"
           >
             <BudgetItemRow
-              v-for="(item, itemIndex) in category.items"
+              v-for="item in category.items"
               :key="item.id"
-              :data-index="itemIndex"
               :item="item"
               :section-type="section.type"
               :year-total="getItemYearTotal(item)"
