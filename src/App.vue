@@ -266,32 +266,37 @@ const onImportBudgetSelected = async (event: Event) => {
       @change="onImportBudgetSelected"
     />
 
-    <BudgetTable
-      :months="store.MONTHS"
-      :sections="store.sections"
-      :expense-totals="store.expenseTotals"
-      :income-totals="store.incomeTotals"
-      :difference-monthly="store.monthlyDifference"
-      :difference-yearly="store.differenceYearly"
-      :editing-category-id="editingCategoryId"
-      :editing-item-id="editingItemId"
-      :get-section-totals="store.getSectionTotals"
-      :get-category-totals="store.getCategoryTotals"
-      :get-item-year-total="store.getItemYearTotal"
-      :get-item-monthly-average="store.getItemMonthlyAverage"
-      @toggle-section="store.toggleSectionCollapse"
-      @add-category="openNewCategoryDialog"
-      @toggle-category="store.toggleCategoryCollapse"
-      @add-item="openNewItemDialog"
-      @start-category-edit="startInlineCategoryEdit"
-      @save-category-edit="saveInlineCategoryEdit"
-      @cancel-category-edit="cancelInlineCategoryEdit"
-      @delete-category="deleteInlineCategory"
-      @start-item-edit="startInlineItemEdit"
-      @save-item-edit="saveInlineItemEdit"
-      @cancel-item-edit="cancelInlineItemEdit"
-      @delete-item="deleteInlineItem"
-    />
+    <div style="overflow: hidden;">
+      <Transition :name="store.yearSlideDirection">
+        <BudgetTable
+          :key="store.currentYear"
+          :months="store.MONTHS"
+          :sections="store.sections"
+          :expense-totals="store.expenseTotals"
+          :income-totals="store.incomeTotals"
+          :difference-monthly="store.monthlyDifference"
+          :difference-yearly="store.differenceYearly"
+          :editing-category-id="editingCategoryId"
+          :editing-item-id="editingItemId"
+          :get-section-totals="store.getSectionTotals"
+          :get-category-totals="store.getCategoryTotals"
+          :get-item-year-total="store.getItemYearTotal"
+          :get-item-monthly-average="store.getItemMonthlyAverage"
+          @toggle-section="store.toggleSectionCollapse"
+          @add-category="openNewCategoryDialog"
+          @toggle-category="store.toggleCategoryCollapse"
+          @add-item="openNewItemDialog"
+          @start-category-edit="startInlineCategoryEdit"
+          @save-category-edit="saveInlineCategoryEdit"
+          @cancel-category-edit="cancelInlineCategoryEdit"
+          @delete-category="deleteInlineCategory"
+          @start-item-edit="startInlineItemEdit"
+          @save-item-edit="saveInlineItemEdit"
+          @cancel-item-edit="cancelInlineItemEdit"
+          @delete-item="deleteInlineItem"
+        />
+      </Transition>
+    </div>
 
     <ItemFormDialog
       :visible="showItemDialog"
