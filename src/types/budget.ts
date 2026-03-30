@@ -1,4 +1,5 @@
 export type SectionType = 'expense' | 'income'
+export type ItemFrequency = 'monthly' | 'weekly' | 'quarterly'
 
 export interface BudgetItem {
   id: string
@@ -6,6 +7,9 @@ export interface BudgetItem {
   name: string
   baseAmount: number
   months: number[]
+  frequency: ItemFrequency
+  weekday?: number
+  quarterStartMonth?: number
   copiedFromYear?: number | null
   copiedBaselineMonths?: number[] | null
 }
@@ -46,6 +50,9 @@ export interface SaveItemPayload {
   name: string
   baseAmount: number
   months: number[]
+  frequency?: ItemFrequency
+  weekday?: number
+  quarterStartMonth?: number
   changedMonthIndexes?: number[]
   editedMonthIndex?: number | null
 }
