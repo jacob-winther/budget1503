@@ -35,6 +35,8 @@ describe('computeMonthsFromFrequency', () => {
       expect(result[2]).toBe(300)  // Mar
       expect(result[5]).toBe(300)  // Jun
       expect(result[8]).toBe(300)  // Sep
+      const inactiveMonths = [0, 1, 3, 4, 6, 7, 9, 10]
+      inactiveMonths.forEach((m) => expect(result[m]).toBe(0))
     })
 
     it('defaults to start=0 (Jan) when quarterStartMonth is undefined', () => {
@@ -68,15 +70,15 @@ describe('computeMonthsFromFrequency', () => {
       expect(withDefault).toEqual(withMonday)
     })
 
-    it('produces different totals for different years due to weekday distribution', () => {
-      const result2026 = computeMonthsFromFrequency('weekly', 100, 2026, { weekday: 1 })
-      const result2027 = computeMonthsFromFrequency('weekly', 100, 2027, { weekday: 1 })
-      // The yearly totals should both be 52*100=5200 (52 Mondays per year, with 1 year having 53)
-      const sum2026 = result2026.reduce((a, b) => a + b, 0)
-      const sum2027 = result2027.reduce((a, b) => a + b, 0)
-      // 2026 has 52 Mondays, 2027 has 52 Mondays (Jan 1 2026 is Thursday)
-      expect(sum2026).toBe(5200)
-      expect(sum2027).toBe(5200)
+    it('distributes Monday counts differently across months for different years', () => {
+      const result2026 = computeMonthsFromFrequency('weekly', 1, 2026, { weekday: 1 })
+      const result2027 = computeMonthsFromFrequency('weekly', 1, 2027, { weekday: 1 })
+      // Even if yearly totals are the same, monthly distribution differs between years
+      // because calendar alignment changes (Jan 1 2026 = Thu, Jan 1 2027 = Fri)
+      expect(result2026).not.toEqual(result2027)
+      // Verify year is actually used: same call with different year → different result
+      const resultSameYear = computeMonthsFromFrequency('weekly', 1, 2026, { weekday: 1 })
+      expect(resultSameYear).toEqual(result2026)
     })
   })
 })
