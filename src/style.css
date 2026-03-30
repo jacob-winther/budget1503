@@ -159,7 +159,7 @@ body {
 }
 
 
-.budget-table td.item-name.expense-item-name {
+.budget-table td.item-name {
   position: relative;
   padding-left: 24px;
 }

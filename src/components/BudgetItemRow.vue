@@ -118,7 +118,7 @@ const onSaveEdit = () => {
 
 <template>
   <tr class="item-row" :class="{ 'expense-item-row': sectionType === 'expense', 'is-editing': isEditing }">
-    <td class="sticky-left name-col item-name" :class="{ 'expense-item-name': sectionType === 'expense' }">
+    <td class="sticky-left name-col item-name">
       <div class="item-row-content">
         <div class="item-main-line">
           <Transition name="fade" mode="out-in">
