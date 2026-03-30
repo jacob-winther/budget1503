@@ -50,6 +50,13 @@ const onSave = () => {
     sectionType: sectionType.value,
   })
 }
+
+const onDialogKeydown = (event: KeyboardEvent) => {
+  if (event.key !== 'Enter') return
+  if ((event.target as HTMLElement).closest('button')) return
+  if (!name.value.trim()) return
+  onSave()
+}
 </script>
 
 <template>
@@ -63,6 +70,7 @@ const onSave = () => {
     :header="mode === 'edit' ? 'Edit Category' : 'New Category'"
     :style="{ width: '28rem' }"
     @update:visible="emit('close')"
+    @keydown="onDialogKeydown"
   >
     <div class="dialog-grid">
       <label>
