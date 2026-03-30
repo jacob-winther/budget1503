@@ -330,3 +330,144 @@ input[type='number']::-webkit-inner-spin-button {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* ─── Animation System ─────────────────────────────────────────────────────── */
+
+:root {
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-expo:  cubic-bezier(0.7, 0, 0.84, 0);
+  --dur-enter:     280ms;
+  --dur-exit:      200ms;
+  --dur-micro:     150ms;
+}
+
+/* Row: used for item/category add, delete, and expand/collapse */
+.row-enter-active {
+  transition:
+    opacity var(--dur-enter) var(--ease-out-expo),
+    transform var(--dur-enter) var(--ease-out-expo);
+}
+.row-leave-active {
+  transition:
+    opacity var(--dur-exit) var(--ease-in-expo),
+    transform var(--dur-exit) var(--ease-in-expo);
+  /* Keep leaving rows in-flow so siblings can animate into place */
+  position: absolute;
+  width: 100%;
+}
+.row-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+.row-leave-to {
+  opacity: 0;
+  transform: translateX(-12px);
+}
+.row-move {
+  transition: transform var(--dur-enter) var(--ease-out-expo);
+}
+
+/* Fade: used for edit/view content swap inside rows */
+.fade-enter-active {
+  transition: opacity var(--dur-micro) var(--ease-out-expo);
+}
+.fade-leave-active {
+  transition: opacity var(--dur-micro) var(--ease-in-expo);
+  position: absolute;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* Dialog: used for all PrimeVue Dialog panels */
+.dialog-enter-active {
+  transition:
+    opacity var(--dur-enter) var(--ease-out-expo),
+    transform var(--dur-enter) var(--ease-out-expo);
+}
+.dialog-leave-active {
+  transition:
+    opacity var(--dur-exit) var(--ease-in-expo),
+    transform var(--dur-exit) var(--ease-in-expo);
+}
+.dialog-enter-from,
+.dialog-leave-to {
+  opacity: 0;
+  transform: scale(0.95) translateY(-8px);
+}
+
+/* Dialog mask/backdrop */
+.dialog-mask-enter-active {
+  transition: opacity var(--dur-enter) var(--ease-out-expo);
+}
+.dialog-mask-leave-active {
+  transition: opacity var(--dur-exit) var(--ease-in-expo);
+}
+.dialog-mask-enter-from,
+.dialog-mask-leave-to {
+  opacity: 0;
+}
+
+/* Year slide: table slides left (going to next year) */
+.slide-left-enter-active,
+.slide-left-leave-active,
+.slide-right-enter-active,
+.slide-right-leave-active {
+  transition:
+    opacity var(--dur-enter) var(--ease-out-expo),
+    transform var(--dur-enter) var(--ease-out-expo);
+}
+.slide-left-enter-from  { opacity: 0; transform: translateX(40px); }
+.slide-left-leave-to    { opacity: 0; transform: translateX(-40px); }
+.slide-right-enter-from { opacity: 0; transform: translateX(-40px); }
+.slide-right-leave-to   { opacity: 0; transform: translateX(40px); }
+
+/* Chevron rotation for section/category collapse toggle */
+.chevron-icon {
+  transition: transform var(--dur-micro) var(--ease-out-expo);
+  display: inline-block;
+  transform: rotate(90deg); /* points down when expanded */
+}
+.chevron-icon.is-collapsed {
+  transform: rotate(0deg); /* points right when collapsed */
+}
+
+/* New-row highlight flash: applied programmatically then removed */
+@keyframes row-highlight {
+  0%   { box-shadow: inset 3px 0 0 var(--p-primary-color, #6366f1); }
+  100% { box-shadow: inset 3px 0 0 transparent; }
+}
+.row-new-highlight td:first-child {
+  animation: row-highlight 600ms var(--ease-out-expo) forwards;
+}
+
+/* PrimeVue dialog mask transition override */
+.dialog-mask-transition.p-dialog-mask-enter-active {
+  transition: opacity var(--dur-enter) var(--ease-out-expo);
+}
+.dialog-mask-transition.p-dialog-mask-leave-active {
+  transition: opacity var(--dur-exit) var(--ease-in-expo);
+}
+.dialog-mask-transition.p-dialog-mask-enter-from,
+.dialog-mask-transition.p-dialog-mask-leave-to {
+  opacity: 0;
+}
+
+/* Edit mode highlight for category rows */
+.category-row {
+  transition: background-color var(--dur-micro) var(--ease-out-expo);
+}
+.category-row.is-editing {
+  background: rgba(99, 102, 241, 0.08);
+  transition: background-color var(--dur-micro) var(--ease-out-expo);
+}
+
+/* Edit mode highlight for item rows */
+.item-row {
+  transition: background-color var(--dur-micro) var(--ease-out-expo);
+}
+.item-row.is-editing {
+  background: rgba(99, 102, 241, 0.05);
+  transition: background-color var(--dur-micro) var(--ease-out-expo);
+}
