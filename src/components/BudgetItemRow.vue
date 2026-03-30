@@ -117,37 +117,40 @@ const onSaveEdit = () => {
 </script>
 
 <template>
-  <tr class="item-row" :class="{ 'expense-item-row': sectionType === 'expense' }">
+  <tr class="item-row" :class="{ 'expense-item-row': sectionType === 'expense', 'is-editing': isEditing }">
     <td class="sticky-left name-col item-name" :class="{ 'expense-item-name': sectionType === 'expense' }">
       <div class="item-row-content">
         <div class="item-main-line">
-          <template v-if="isEditing">
-            <input
-              v-model="draftName"
-              class="inline-category-input"
-              type="text"
-              maxlength="28"
-              @keydown.enter.prevent="onSaveEdit"
-              @keydown.esc.prevent="emit('cancel-edit')"
-            />
-            <button class="inline-action-btn" type="button" @click.stop="onSaveEdit">
-              <i class="pi pi-check" />
-            </button>
-            <button class="inline-action-btn" type="button" @click.stop="emit('cancel-edit')">
-              <i class="pi pi-times" />
-            </button>
-          </template>
-          <template v-else>
-            {{ item.name }}
-            <span class="row-actions">
-              <button class="inline-action-btn" type="button" @click.stop="emit('start-edit', item.id)">
-                <i class="pi pi-pencil" />
+          <Transition name="fade" mode="out-in">
+            <span v-if="isEditing" key="editing" style="display: inline-flex; align-items: center; gap: 8px;">
+              <input
+                v-model="draftName"
+                class="inline-category-input"
+                type="text"
+                maxlength="28"
+                @click.stop
+                @keydown.enter.prevent="onSaveEdit"
+                @keydown.esc.prevent="emit('cancel-edit')"
+              />
+              <button class="inline-action-btn" type="button" @click.stop="onSaveEdit">
+                <i class="pi pi-check" />
               </button>
-              <button class="inline-action-btn" type="button" @click.stop="emit('delete', item.id)">
-                <i class="pi pi-trash" />
+              <button class="inline-action-btn" type="button" @click.stop="emit('cancel-edit')">
+                <i class="pi pi-times" />
               </button>
             </span>
-          </template>
+            <span v-else key="viewing" style="display: inline-flex; align-items: center; gap: 8px;">
+              {{ item.name }}
+              <span class="row-actions">
+                <button class="inline-action-btn" type="button" @click.stop="emit('start-edit', item.id)">
+                  <i class="pi pi-pencil" />
+                </button>
+                <button class="inline-action-btn" type="button" @click.stop="emit('delete', item.id)">
+                  <i class="pi pi-trash" />
+                </button>
+              </span>
+            </span>
+          </Transition>
         </div>
 
       </div>

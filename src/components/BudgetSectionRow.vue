@@ -16,7 +16,11 @@ const emit = defineEmits<{
 <template>
   <tr class="section-row" @click="emit('toggle', section.id)">
     <td class="sticky-left name-col section-name">
-      <i class="pi" :class="section.collapsed ? 'pi-chevron-right' : 'pi-chevron-down'" />
+      <i
+        class="pi pi-chevron-right chevron-icon"
+        :class="{ 'is-collapsed': section.collapsed }"
+        style="transform-origin: center"
+      />
       {{ section.name }}
       <button class="inline-action-btn inline-add-btn" type="button" title="Add category" @click.stop="emit('add-category', section.type)">
         <i class="pi pi-plus" />

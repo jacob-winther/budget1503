@@ -50,43 +50,52 @@ const onSaveEdit = () => {
 </script>
 
 <template>
-  <tr class="category-row">
+  <tr class="category-row" :class="{ 'is-editing': isEditing }">
     <td class="sticky-left name-col category-name">
       <button class="collapse-btn" type="button" @click.stop="emit('toggle', category.id)">
-        <i class="pi" :class="category.collapsed ? 'pi-chevron-right' : 'pi-chevron-down'" />
+        <i
+          class="pi pi-chevron-right chevron-icon"
+          :class="{ 'is-collapsed': category.collapsed }"
+          style="transform-origin: center"
+        />
       </button>
 
-      <template v-if="isEditing">
-        <input
-          v-model="draftName"
-          class="inline-category-input"
-          type="text"
-          @click.stop
-          @keydown.enter.prevent="onSaveEdit"
-          @keydown.esc.prevent="emit('cancel-edit')"
-        />
-        <button class="inline-action-btn" type="button" @click.stop="onSaveEdit">
-          <i class="pi pi-check" />
-        </button>
-        <button class="inline-action-btn" type="button" @click.stop="emit('cancel-edit')">
-          <i class="pi pi-times" />
-        </button>
-      </template>
-
-      <template v-else>
-        {{ category.name }}
-        <span class="row-actions">
-          <button class="inline-action-btn inline-add-btn" type="button" title="Add entry" @click.stop="emit('add-item', category.id)">
-            <i class="pi pi-plus" />
-          </button>
-          <button class="inline-action-btn" type="button" @click.stop="emit('start-edit', category.id)">
-            <i class="pi pi-pencil" />
-          </button>
-          <button class="inline-action-btn" type="button" @click.stop="emit('delete', category.id)">
-            <i class="pi pi-trash" />
-          </button>
-        </span>
-      </template>
+      <Transition name="fade" mode="out-in">
+        <template v-if="isEditing" key="editing">
+          <span style="display: inline-flex; align-items: center; gap: 8px;">
+            <input
+              v-model="draftName"
+              class="inline-category-input"
+              type="text"
+              @click.stop
+              @keydown.enter.prevent="onSaveEdit"
+              @keydown.esc.prevent="emit('cancel-edit')"
+            />
+            <button class="inline-action-btn" type="button" @click.stop="onSaveEdit">
+              <i class="pi pi-check" />
+            </button>
+            <button class="inline-action-btn" type="button" @click.stop="emit('cancel-edit')">
+              <i class="pi pi-times" />
+            </button>
+          </span>
+        </template>
+        <template v-else key="viewing">
+          <span style="display: inline-flex; align-items: center; gap: 8px;">
+            {{ category.name }}
+            <span class="row-actions">
+              <button class="inline-action-btn inline-add-btn" type="button" title="Add entry" @click.stop="emit('add-item', category.id)">
+                <i class="pi pi-plus" />
+              </button>
+              <button class="inline-action-btn" type="button" @click.stop="emit('start-edit', category.id)">
+                <i class="pi pi-pencil" />
+              </button>
+              <button class="inline-action-btn" type="button" @click.stop="emit('delete', category.id)">
+                <i class="pi pi-trash" />
+              </button>
+            </span>
+          </span>
+        </template>
+      </Transition>
     </td>
     <td v-for="(month, index) in totals.monthly" :key="`${category.id}-${index}`" class="amount">
       {{ formatCurrency(month) }}
