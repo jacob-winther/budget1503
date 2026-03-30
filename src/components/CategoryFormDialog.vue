@@ -53,7 +53,17 @@ const onSave = () => {
 </script>
 
 <template>
-  <Dialog :visible="visible" modal :header="mode === 'edit' ? 'Edit Category' : 'New Category'" :style="{ width: '28rem' }" @update:visible="emit('close')">
+  <Dialog
+    :visible="visible"
+    :pt="{
+      transition: { name: 'dialog' },
+      mask: { class: 'dialog-mask-transition' },
+    }"
+    modal
+    :header="mode === 'edit' ? 'Edit Category' : 'New Category'"
+    :style="{ width: '28rem' }"
+    @update:visible="emit('close')"
+  >
     <div class="dialog-grid">
       <label>
         <span>Name</span>

@@ -116,7 +116,17 @@ const canSave = computed(() => {
 </script>
 
 <template>
-  <Dialog :visible="visible" modal :header="mode === 'edit' ? 'Edit Item' : 'New Item'" :style="{ width: '44rem' }" @update:visible="emit('close')">
+  <Dialog
+    :visible="visible"
+    :pt="{
+      transition: { name: 'dialog' },
+      mask: { class: 'dialog-mask-transition' },
+    }"
+    modal
+    :header="mode === 'edit' ? 'Edit Item' : 'New Item'"
+    :style="{ width: '44rem' }"
+    @update:visible="emit('close')"
+  >
     <div class="dialog-grid">
       <label>
         <span>Name</span>

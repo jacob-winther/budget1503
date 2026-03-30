@@ -43,7 +43,17 @@ const onConfirm = () => {
 </script>
 
 <template>
-  <Dialog :visible="visible" modal header="Copy Year" :style="{ width: '24rem' }" @update:visible="emit('close')">
+  <Dialog
+    :visible="visible"
+    :pt="{
+      transition: { name: 'dialog' },
+      mask: { class: 'dialog-mask-transition' },
+    }"
+    modal
+    header="Copy Year"
+    :style="{ width: '24rem' }"
+    @update:visible="emit('close')"
+  >
     <p>Select the year to copy into {{ currentYear }}.</p>
 
     <Select
