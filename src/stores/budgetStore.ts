@@ -5,12 +5,14 @@ import type {
   BudgetData,
   BudgetItem,
   BudgetSection,
+  ItemFrequency,
   SaveCategoryPayload,
   SaveItemPayload,
   SectionType,
   Totals,
   YearData,
 } from '../types/budget'
+import { computeMonthsFromFrequency } from '../utils/frequency'
 
 const STORAGE_KEY = 'budget-app-data-v1'
 const ENTRY_TITLE_MAX_LENGTH = 28
@@ -124,6 +126,7 @@ const createSeedData = (year: number): BudgetData => {
                   name: 'Rent',
                   baseAmount: 1200,
                   months: Array.from({ length: 12 }, () => 1200),
+                  frequency: 'monthly' as ItemFrequency,
                 },
                 {
                   id: createId(),
@@ -131,6 +134,7 @@ const createSeedData = (year: number): BudgetData => {
                   name: 'Internet',
                   baseAmount: 60,
                   months: Array.from({ length: 12 }, () => 60),
+                  frequency: 'monthly' as ItemFrequency,
                 },
               ],
             },
@@ -153,6 +157,7 @@ const createSeedData = (year: number): BudgetData => {
                   name: 'Primary Salary',
                   baseAmount: 3200,
                   months: Array.from({ length: 12 }, () => 3200),
+                  frequency: 'monthly' as ItemFrequency,
                 },
               ],
             },
@@ -160,6 +165,20 @@ const createSeedData = (year: number): BudgetData => {
         },
       ],
     },
+  }
+}
+
+const normalizeBudgetData = (budgetData: BudgetData): void => {
+  for (const yearData of Object.values(budgetData)) {
+    for (const section of yearData.sections) {
+      for (const category of section.categories) {
+        for (const item of category.items) {
+          if (!item.frequency) {
+            item.frequency = 'monthly'
+          }
+        }
+      }
+    }
   }
 }
 
@@ -295,6 +314,7 @@ export const useBudgetStore = defineStore('budget', () => {
         currentYear.value = Number(parsed.currentYear)
       }
 
+      normalizeBudgetData(data.value)
       ensureYearExists(data.value, currentYear.value)
     } catch {
       data.value = createSeedData(currentYear.value)
@@ -503,7 +523,7 @@ export const useBudgetStore = defineStore('budget', () => {
     return findCategory(sections.value, createdCategory.id)
   }
 
-  const addItem = ({ categoryId, categoryName, sectionType, name, baseAmount, months }: SaveItemPayload): BudgetItem | null => {
+  const addItem = ({ categoryId, categoryName, sectionType, name, baseAmount, months, frequency, weekday, quarterStartMonth }: SaveItemPayload): BudgetItem | null => {
     const found = resolveCategoryForItem({ categoryId, categoryName, sectionType })
 
     if (!found) {
@@ -516,19 +536,27 @@ export const useBudgetStore = defineStore('budget', () => {
       return null
     }
 
+    const resolvedFrequency: ItemFrequency = frequency ?? 'monthly'
+    const computedMonths = resolvedFrequency !== 'monthly'
+      ? computeMonthsFromFrequency(resolvedFrequency, toNumber(baseAmount), currentYear.value, { weekday, quarterStartMonth })
+      : normalizeMonths(baseAmount, months)
+
     const item: BudgetItem = {
       id: createId(),
       categoryId: found.category.id,
       name: normalizedItemName,
       baseAmount: toNumber(baseAmount),
-      months: normalizeMonths(baseAmount, months),
+      months: computedMonths,
+      frequency: resolvedFrequency,
+      ...(weekday !== undefined ? { weekday } : {}),
+      ...(quarterStartMonth !== undefined ? { quarterStartMonth } : {}),
     }
 
     found.category.items.push(item)
     return item
   }
 
-  const editItem = ({ itemId, categoryId, categoryName, sectionType, name, baseAmount, months }: SaveItemPayload): boolean => {
+  const editItem = ({ itemId, categoryId, categoryName, sectionType, name, baseAmount, months, frequency, weekday, quarterStartMonth }: SaveItemPayload): boolean => {
     if (!itemId) {
       return false
     }
@@ -551,9 +579,17 @@ export const useBudgetStore = defineStore('budget', () => {
       return false
     }
 
+    const resolvedFrequency: ItemFrequency = frequency ?? located.item.frequency ?? 'monthly'
+    const computedMonths = resolvedFrequency !== 'monthly'
+      ? computeMonthsFromFrequency(resolvedFrequency, toNumber(baseAmount), currentYear.value, { weekday, quarterStartMonth })
+      : normalizeMonths(baseAmount, months)
+
     located.item.name = normalizedItemName
     located.item.baseAmount = toNumber(baseAmount)
-    located.item.months = normalizeMonths(baseAmount, months)
+    located.item.months = computedMonths
+    located.item.frequency = resolvedFrequency
+    if (weekday !== undefined) located.item.weekday = weekday
+    if (quarterStartMonth !== undefined) located.item.quarterStartMonth = quarterStartMonth
 
     if (resolvedCategory.category.id !== located.category.id) {
       located.category.items = located.category.items.filter((item) => item.id !== itemId)
@@ -582,6 +618,17 @@ export const useBudgetStore = defineStore('budget', () => {
     }
 
     return false
+  }
+
+  const updateItemCategoryId = (itemId: string, newCategoryId: string): boolean => {
+    const located = findItem(sections.value, itemId)
+
+    if (!located) {
+      return false
+    }
+
+    located.item.categoryId = newCategoryId
+    return true
   }
 
   const toggleSectionCollapse = (sectionId: string): void => {
@@ -633,6 +680,7 @@ export const useBudgetStore = defineStore('budget', () => {
     addItem,
     editItem,
     deleteItem,
+    updateItemCategoryId,
     toggleSectionCollapse,
     toggleCategoryCollapse,
     getCategoryTotals,

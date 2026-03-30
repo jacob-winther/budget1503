@@ -469,4 +469,81 @@ describe('budgetStore', () => {
     expect(section.collapsed).toBe(!sectionInitial)
     expect(category.collapsed).toBe(!categoryInitial)
   })
+
+  describe('frequency', () => {
+    it('stores monthly frequency with all months equal to baseAmount', () => {
+      const store = useBudgetStore()
+      const cat = store.addCategory({ sectionType: 'expense', name: 'Test' })!
+      const item = store.addItem({ categoryId: cat.id, name: 'Item', baseAmount: 100, months: [], frequency: 'monthly' })!
+      expect(item.frequency).toBe('monthly')
+      expect(item.months.every((v) => v === 100)).toBe(true)
+    })
+
+    it('stores quarterly frequency with only 4 active months', () => {
+      const store = useBudgetStore()
+      const cat = store.addCategory({ sectionType: 'expense', name: 'Test' })!
+      const item = store.addItem({
+        categoryId: cat.id,
+        name: 'Item',
+        baseAmount: 1200,
+        months: [],
+        frequency: 'quarterly',
+        quarterStartMonth: 1,
+      })!
+      expect(item.frequency).toBe('quarterly')
+      expect(item.quarterStartMonth).toBe(1)
+      expect(item.months[1]).toBe(1200) // Feb
+      expect(item.months[4]).toBe(1200) // May
+      expect(item.months[7]).toBe(1200) // Aug
+      expect(item.months[10]).toBe(1200) // Nov
+      const inactiveCount = item.months.filter((v) => v === 0).length
+      expect(inactiveCount).toBe(8)
+    })
+
+    it('stores weekly frequency with months computed from weekday count', () => {
+      const store = useBudgetStore()
+      const cat = store.addCategory({ sectionType: 'expense', name: 'Test' })!
+      const item = store.addItem({
+        categoryId: cat.id,
+        name: 'Item',
+        baseAmount: 100,
+        months: [],
+        frequency: 'weekly',
+        weekday: 1,
+      })!
+      expect(item.frequency).toBe('weekly')
+      expect(item.weekday).toBe(1)
+      const total = item.months.reduce((a, b) => a + b, 0)
+      expect(total).toBeGreaterThanOrEqual(5200)
+      expect(total).toBeLessThanOrEqual(5300)
+    })
+
+    it('defaults to monthly frequency when frequency field is missing from stored data', () => {
+      const store = useBudgetStore()
+      const cat = store.addCategory({ sectionType: 'expense', name: 'Test' })!
+      const item = store.addItem({ categoryId: cat.id, name: 'Legacy', baseAmount: 50, months: [] })!
+      expect(item.frequency).toBe('monthly')
+    })
+  })
+
+  describe('updateItemCategoryId', () => {
+    it('updates categoryId on the item', () => {
+      const store = useBudgetStore()
+      const expCat = store.addCategory({ sectionType: 'expense', name: 'ExpCat' })!
+      const incCat = store.addCategory({ sectionType: 'income', name: 'IncCat' })!
+      const item = store.addItem({ categoryId: expCat.id, name: 'MyItem', baseAmount: 100, months: [] })!
+      store.updateItemCategoryId(item.id, incCat.id)
+      const located = store.sections
+        .flatMap((s) => s.categories)
+        .flatMap((c) => c.items)
+        .find((i) => i.id === item.id)
+      expect(located?.categoryId).toBe(incCat.id)
+    })
+
+    it('returns false for unknown itemId', () => {
+      const store = useBudgetStore()
+      const result = store.updateItemCategoryId('nonexistent', 'any-id')
+      expect(result).toBe(false)
+    })
+  })
 })
