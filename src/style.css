@@ -460,7 +460,6 @@ input[type='number']::-webkit-inner-spin-button {
 }
 .category-row.is-editing {
   background: rgba(99, 102, 241, 0.08);
-  transition: background-color var(--dur-micro) var(--ease-out-expo);
 }
 
 /* Edit mode highlight for item rows */
@@ -469,5 +468,4 @@ input[type='number']::-webkit-inner-spin-button {
 }
 .item-row.is-editing {
   background: rgba(99, 102, 241, 0.05);
-  transition: background-color var(--dur-micro) var(--ease-out-expo);
 }
