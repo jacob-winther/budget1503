@@ -7,8 +7,33 @@ type BudgetStore = ReturnType<typeof useBudgetStore>
 const getExpenseSection = (store: BudgetStore) => store.sections.find((section) => section.type === 'expense')!
 const getIncomeSection = (store: BudgetStore) => store.sections.find((section) => section.type === 'income')!
 
+const createStorageMock = (): Storage => {
+  const state = new Map<string, string>()
+
+  return {
+    get length() {
+      return state.size
+    },
+    clear: () => {
+      state.clear()
+    },
+    getItem: (key: string) => state.get(key) ?? null,
+    key: (index: number) => Array.from(state.keys())[index] ?? null,
+    removeItem: (key: string) => {
+      state.delete(key)
+    },
+    setItem: (key: string, value: string) => {
+      state.set(key, String(value))
+    },
+  }
+}
+
 beforeEach(() => {
-  localStorage.clear()
+  Object.defineProperty(globalThis, 'localStorage', {
+    value: createStorageMock(),
+    configurable: true,
+    writable: true,
+  })
   setActivePinia(createPinia())
 })
 
@@ -259,7 +284,7 @@ describe('budgetStore', () => {
   })
 
   it('persists data to localStorage', () => {
-    const setItemSpy = vi.spyOn(Storage.prototype, 'setItem')
+    const setItemSpy = vi.spyOn(localStorage, 'setItem')
     const store = useBudgetStore()
 
     store.goToNextYear()
@@ -411,6 +436,17 @@ describe('budgetStore', () => {
     expect(incomeSection).toBeTruthy()
     expect(expenseSection.categories.length).toBeGreaterThan(0)
     expect(incomeSection.categories.length).toBeGreaterThan(0)
+  })
+
+  it('tracks year slide direction when navigating years', () => {
+    const store = useBudgetStore()
+    expect(store.yearSlideDirection).toBe('slide-left')
+
+    store.goToNextYear()
+    expect(store.yearSlideDirection).toBe('slide-left')
+
+    store.goToPreviousYear()
+    expect(store.yearSlideDirection).toBe('slide-right')
   })
 
   it('toggles section and category collapse flags and ignores unknown ids', () => {

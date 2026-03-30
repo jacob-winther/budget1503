@@ -237,6 +237,7 @@ interface SerializedBudgetStore {
 
 export const useBudgetStore = defineStore('budget', () => {
   const currentYear = ref(new Date().getFullYear())
+  const yearSlideDirection = ref<'slide-left' | 'slide-right'>('slide-left')
   const data = ref(createSeedData(currentYear.value))
 
   const currentYearData = computed(() => {
@@ -315,8 +316,14 @@ export const useBudgetStore = defineStore('budget', () => {
     ensureYearExists(data.value, currentYear.value)
   }
 
-  const goToPreviousYear = (): void => setYear(currentYear.value - 1)
-  const goToNextYear = (): void => setYear(currentYear.value + 1)
+  const goToPreviousYear = (): void => {
+    yearSlideDirection.value = 'slide-right'
+    currentYear.value -= 1
+  }
+  const goToNextYear = (): void => {
+    yearSlideDirection.value = 'slide-left'
+    currentYear.value += 1
+  }
 
   const copyPreviousYear = (): boolean => {
     const sourceYear = currentYear.value - 1
@@ -601,6 +608,7 @@ export const useBudgetStore = defineStore('budget', () => {
   return {
     MONTHS,
     currentYear,
+    yearSlideDirection,
     data,
     sections,
     expenseSection,
