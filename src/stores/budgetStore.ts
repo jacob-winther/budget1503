@@ -322,13 +322,13 @@ export const useBudgetStore = defineStore('budget', () => {
 
       if (parsed && typeof parsed === 'object' && parsed.data) {
         data.value = parsed.data
+        normalizeBudgetData(data.value)
       }
 
       if (parsed && Number.isFinite(Number(parsed.currentYear))) {
         currentYear.value = Number(parsed.currentYear)
       }
 
-      normalizeBudgetData(data.value)
       ensureYearExists(data.value, currentYear.value)
     } catch {
       data.value = createSeedData(currentYear.value)
@@ -602,8 +602,8 @@ export const useBudgetStore = defineStore('budget', () => {
     located.item.baseAmount = toNumber(baseAmount)
     located.item.months = computedMonths
     located.item.frequency = resolvedFrequency
-    if (weekday !== undefined) located.item.weekday = weekday
-    if (quarterStartMonth !== undefined) located.item.quarterStartMonth = quarterStartMonth
+    located.item.weekday = resolvedFrequency === 'weekly' ? weekday : undefined
+    located.item.quarterStartMonth = resolvedFrequency === 'quarterly' ? quarterStartMonth : undefined
 
     if (resolvedCategory.category.id !== located.category.id) {
       located.category.items = located.category.items.filter((item) => item.id !== itemId)
