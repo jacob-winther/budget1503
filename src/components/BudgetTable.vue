@@ -53,6 +53,22 @@ const emit = defineEmits<{
   (event: 'cancel-item-edit'): void
   (event: 'delete-item', itemId: string): void
 }>()
+
+// Stagger helpers for TransitionGroup
+function onRowBeforeEnter(el: Element) {
+  const index = parseInt((el as HTMLElement).dataset.index ?? '0', 10)
+  ;(el as HTMLElement).style.transitionDelay = `${index * 30}ms`
+}
+function onRowAfterEnter(el: Element) {
+  ;(el as HTMLElement).style.transitionDelay = ''
+}
+
+// New-row highlight flash
+function onItemEnter(el: Element) {
+  const row = el as HTMLElement
+  row.classList.add('row-new-highlight')
+  setTimeout(() => row.classList.remove('row-new-highlight'), 650)
+}
 </script>
 
 <template>
@@ -68,9 +84,12 @@ const emit = defineEmits<{
             @add-category="emit('add-category', $event)"
           />
 
-          <template v-if="!section.collapsed">
-            <template v-for="category in section.categories" :key="category.id">
+          <!-- Categories animate in/out when section collapses/expands -->
+          <template v-for="(category, catIndex) in section.categories" :key="category.id">
+            <Transition name="row">
               <BudgetCategoryRow
+                v-if="!section.collapsed"
+                :style="{ transitionDelay: `${catIndex * 30}ms` }"
                 :category="category"
                 :totals="getCategoryTotals(category)"
                 :is-editing="editingCategoryId === category.id"
@@ -81,23 +100,30 @@ const emit = defineEmits<{
                 @cancel-edit="emit('cancel-category-edit')"
                 @delete="emit('delete-category', $event)"
               />
+            </Transition>
 
-              <template v-if="!category.collapsed">
-                <BudgetItemRow
-                  v-for="item in category.items"
-                  :key="item.id"
-                  :item="item"
-                  :section-type="section.type"
-                  :year-total="getItemYearTotal(item)"
-                  :average="getItemMonthlyAverage(item)"
-                  :is-editing="editingItemId === item.id"
-                  @start-edit="emit('start-item-edit', $event)"
-                  @save-edit="emit('save-item-edit', $event)"
-                  @cancel-edit="emit('cancel-item-edit')"
-                  @delete="emit('delete-item', $event)"
-                />
-              </template>
-            </template>
+            <!-- Items animate in/out when category collapses/expands, and on add/delete -->
+            <TransitionGroup
+              name="row"
+              @before-enter="onRowBeforeEnter"
+              @after-enter="onRowAfterEnter"
+              @enter="onItemEnter"
+            >
+              <BudgetItemRow
+                v-for="(item, itemIndex) in (category.collapsed || section.collapsed) ? [] : category.items"
+                :key="item.id"
+                :data-index="itemIndex"
+                :item="item"
+                :section-type="section.type"
+                :year-total="getItemYearTotal(item)"
+                :average="getItemMonthlyAverage(item)"
+                :is-editing="editingItemId === item.id"
+                @start-edit="emit('start-item-edit', $event)"
+                @save-edit="emit('save-item-edit', $event)"
+                @cancel-edit="emit('cancel-item-edit')"
+                @delete="emit('delete-item', $event)"
+              />
+            </TransitionGroup>
           </template>
         </template>
 
