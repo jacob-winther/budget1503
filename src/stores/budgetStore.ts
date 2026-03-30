@@ -188,7 +188,7 @@ const ensureYearExists = (state: BudgetData, year: number): void => {
   }
 }
 
-const remapYearIds = (yearData: YearData, copiedFromYear: number | null = null): YearData => {
+const remapYearIds = (yearData: YearData, copiedFromYear: number | null = null, targetYear = 0): YearData => {
   const cloned = clone(yearData)
 
   cloned.sections = cloned.sections.map((section) => ({
@@ -200,13 +200,27 @@ const remapYearIds = (yearData: YearData, copiedFromYear: number | null = null):
       return {
         ...category,
         id: newCategoryId,
-        items: category.items.map((item) => ({
-          ...item,
-          id: createId(),
-          categoryId: newCategoryId,
-          copiedFromYear,
-          copiedBaselineMonths: Array.isArray(item.months) ? item.months.map((value) => toNumber(value)) : null,
-        })),
+        items: category.items.map((item) => {
+          const freq = item.frequency ?? 'monthly'
+          const recomputedMonths =
+            freq === 'weekly' && targetYear > 0
+              ? computeMonthsFromFrequency('weekly', item.baseAmount, targetYear, { weekday: item.weekday })
+              : freq === 'quarterly' && targetYear > 0
+                ? computeMonthsFromFrequency('quarterly', item.baseAmount, targetYear, { quarterStartMonth: item.quarterStartMonth })
+                : Array.isArray(item.months)
+                  ? item.months.map((value) => toNumber(value))
+                  : Array.from({ length: 12 }, () => toNumber(item.baseAmount))
+
+          return {
+            ...item,
+            id: createId(),
+            categoryId: newCategoryId,
+            frequency: freq,
+            months: recomputedMonths,
+            copiedFromYear,
+            copiedBaselineMonths: Array.isArray(item.months) ? item.months.map((value) => toNumber(value)) : null,
+          }
+        }),
       }
     }),
   }))
@@ -352,7 +366,7 @@ export const useBudgetStore = defineStore('budget', () => {
       return false
     }
 
-    data.value[currentYear.value] = remapYearIds(data.value[sourceYear], sourceYear)
+    data.value[currentYear.value] = remapYearIds(data.value[sourceYear], sourceYear, currentYear.value)
     return true
   }
 
@@ -361,7 +375,7 @@ export const useBudgetStore = defineStore('budget', () => {
       return false
     }
 
-    data.value[toYear] = remapYearIds(data.value[fromYear], fromYear)
+    data.value[toYear] = remapYearIds(data.value[fromYear], fromYear, toYear)
     return true
   }
 
