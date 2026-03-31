@@ -251,9 +251,9 @@ const onImportBudgetSelected = async (event: Event) => {
 
 <template>
   <main class="page">
-    <h1>Budget Planner</h1>
+    <h1 class="content-width">Budget Planner</h1>
 
-    <BudgetToolbar
+    <BudgetToolbar class="content-width"
       :year="store.currentYear"
       @prev-year="store.goToPreviousYear"
       @next-year="store.goToNextYear"
@@ -270,7 +270,7 @@ const onImportBudgetSelected = async (event: Event) => {
       @change="onImportBudgetSelected"
     />
 
-    <div style="overflow: hidden;">
+    <div class="content-width" style="overflow: hidden;">
       <Transition :name="store.yearSlideDirection">
         <BudgetTable
           :key="store.currentYear"

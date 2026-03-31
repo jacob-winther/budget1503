@@ -174,6 +174,8 @@ const onSaveEdit = () => {
             step="0.01"
             @focus="onMonthFocus(index)"
             @blur="onMonthBlur(index)"
+            @keydown.enter.prevent="onSaveEdit"
+            @keydown.esc.prevent="emit('cancel-edit')"
           />
         </div>
       </template>

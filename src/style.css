@@ -23,7 +23,7 @@ body {
 }
 
 .page h1 {
-  margin: 0 0 10px;
+  margin: 0 auto 10px;
   font-size: 1.15rem;
   font-weight: 700;
 }
@@ -54,6 +54,13 @@ body {
   font-weight: 700;
 }
 
+.content-width {
+  max-width: 85%;
+  min-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .table-wrap {
   border: 1px solid #cfd8e3;
   border-radius: 6px;
@@ -65,7 +72,7 @@ body {
   width: max-content;
   min-width: 100%;
   border-collapse: collapse;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
 }
 
 .budget-table th,
@@ -86,7 +93,7 @@ body {
 
 .budget-table .name-col {
   text-align: left;
-  min-width: 270px;
+  min-width: 220px;
 }
 
 .budget-table .sticky-left {
@@ -98,7 +105,7 @@ body {
 
 .budget-table .amount {
   text-align: right;
-  min-width: 80px;
+  min-width: 68px;
 }
 
 .section-row {
@@ -177,13 +184,14 @@ body {
 }
 
 .inline-category-input {
-  width: 170px;
-  max-width: 100%;
+  width: 163px;
+  max-width: 99%;
   min-width: 0;
   border: 1px solid #c8d3e1;
   border-radius: 4px;
-  padding: 2px 6px;
+  padding: 0 5px;
   font-size: inherit;
+  line-height: 1.4;
 }
 
 .item-name .inline-category-input {
@@ -227,14 +235,15 @@ body {
 
 .inline-amount-input {
   display: inline-block;
-  width: 64px;
-  max-width: 64px;
-  min-width: 64px;
+  width: 54px;
+  max-width: 58px;
+  min-width: 50px;
   border: 1px solid #c8d3e1;
   border-radius: 4px;
-  padding: 1px 4px;
+  padding: 0 3px;
   text-align: right;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
+  line-height: 1.4;
 }
 
 .amount-input-wrap {
