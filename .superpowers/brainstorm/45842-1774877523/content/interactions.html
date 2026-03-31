@@ -1,0 +1,135 @@
+<h2>The 7 Animation Moments</h2>
+<p class="subtitle">How each interaction behaves — scroll to see all</p>
+
+<div class="section">
+  <h3>A · Expand / Collapse</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px">
+    <div style="background:#1a1d2e;border-radius:8px;padding:14px;border:1px solid rgba(255,255,255,0.05)">
+      <div class="label" style="color:#ef4444">Before</div>
+      <div style="color:#94a3b8;font-size:12px;margin-top:6px">Rows appear/disappear instantly. Table jumps.</div>
+    </div>
+    <div style="background:#1a1d2e;border-radius:8px;padding:14px;border:1px solid rgba(129,140,248,0.2)">
+      <div class="label" style="color:#4ade80">After</div>
+      <div style="color:#94a3b8;font-size:12px;margin-top:6px">
+        <code style="color:#818cf8">grid-template-rows</code> animates <code style="color:#818cf8">0fr → 1fr</code> (CSS height trick, no JS). Child rows stagger in with 30ms delay each. Chevron rotates 90° with <code style="color:#818cf8">--dur-micro</code>.
+      </div>
+    </div>
+  </div>
+  <div style="background:#111827;border-radius:6px;padding:12px;margin-top:10px;font-size:12px;color:#64748b">
+    Vue component: <code style="color:#818cf8">BudgetSectionRow</code> + <code style="color:#818cf8">BudgetCategoryRow</code> — wrap children in <code style="color:#818cf8">&lt;TransitionGroup name="row"&gt;</code>
+  </div>
+</div>
+
+<div class="section">
+  <h3>B · Adding a new row</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px">
+    <div style="background:#1a1d2e;border-radius:8px;padding:14px;border:1px solid rgba(255,255,255,0.05)">
+      <div class="label" style="color:#ef4444">Before</div>
+      <div style="color:#94a3b8;font-size:12px;margin-top:6px">Row pops in at full size immediately.</div>
+    </div>
+    <div style="background:#1a1d2e;border-radius:8px;padding:14px;border:1px solid rgba(129,140,248,0.2)">
+      <div class="label" style="color:#4ade80">After</div>
+      <div style="color:#94a3b8;font-size:12px;margin-top:6px">
+        Slides up from 8px below + fades in over <code style="color:#818cf8">280ms ease-out-expo</code>. A brief left-border highlight (<code style="color:#818cf8">--accent</code> color) flashes for 600ms to draw the eye.
+      </div>
+    </div>
+  </div>
+  <div style="background:#111827;border-radius:6px;padding:12px;margin-top:10px;font-size:12px;color:#64748b">
+    Vue component: <code style="color:#818cf8">BudgetItemRow</code> / <code style="color:#818cf8">BudgetCategoryRow</code> — <code style="color:#818cf8">.row-enter-active</code> CSS class
+  </div>
+</div>
+
+<div class="section">
+  <h3>C · Deleting a row</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px">
+    <div style="background:#1a1d2e;border-radius:8px;padding:14px;border:1px solid rgba(255,255,255,0.05)">
+      <div class="label" style="color:#ef4444">Before</div>
+      <div style="color:#94a3b8;font-size:12px;margin-top:6px">Row vanishes. Table reflows with a jump.</div>
+    </div>
+    <div style="background:#1a1d2e;border-radius:8px;padding:14px;border:1px solid rgba(129,140,248,0.2)">
+      <div class="label" style="color:#4ade80">After</div>
+      <div style="color:#94a3b8;font-size:12px;margin-top:6px">
+        Fades out + slides left 12px over <code style="color:#818cf8">200ms ease-in-expo</code>. Height collapses to 0 after opacity reaches 0, so the table reflows smoothly.
+      </div>
+    </div>
+  </div>
+  <div style="background:#111827;border-radius:6px;padding:12px;margin-top:10px;font-size:12px;color:#64748b">
+    Same <code style="color:#818cf8">TransitionGroup</code> — <code style="color:#818cf8">.row-leave-active</code> + <code style="color:#818cf8">position:absolute</code> during leave so siblings animate into place
+  </div>
+</div>
+
+<div class="section">
+  <h3>D · Edit mode enter / exit</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px">
+    <div style="background:#1a1d2e;border-radius:8px;padding:14px;border:1px solid rgba(255,255,255,0.05)">
+      <div class="label" style="color:#ef4444">Before</div>
+      <div style="color:#94a3b8;font-size:12px;margin-top:6px">Text swaps to input instantly.</div>
+    </div>
+    <div style="background:#1a1d2e;border-radius:8px;padding:14px;border:1px solid rgba(129,140,248,0.2)">
+      <div class="label" style="color:#4ade80">After</div>
+      <div style="color:#94a3b8;font-size:12px;margin-top:6px">
+        Row background transitions to a subtle highlight shade over <code style="color:#818cf8">150ms</code>. Inputs fade in. On save/cancel, reverse. The active edit row gets a left-border accent glow.
+      </div>
+    </div>
+  </div>
+  <div style="background:#111827;border-radius:6px;padding:12px;margin-top:10px;font-size:12px;color:#64748b">
+    Vue component: <code style="color:#818cf8">BudgetItemRow</code> — CSS <code style="color:#818cf8">transition</code> on <code style="color:#818cf8">background-color</code> + <code style="color:#818cf8">&lt;Transition name="fade"&gt;</code> around inputs
+  </div>
+</div>
+
+<div class="section">
+  <h3>E · Totals updating</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px">
+    <div style="background:#1a1d2e;border-radius:8px;padding:14px;border:1px solid rgba(255,255,255,0.05)">
+      <div class="label" style="color:#ef4444">Before</div>
+      <div style="color:#94a3b8;font-size:12px;margin-top:6px">Numbers snap to new value silently.</div>
+    </div>
+    <div style="background:#1a1d2e;border-radius:8px;padding:14px;border:1px solid rgba(129,140,248,0.2)">
+      <div class="label" style="color:#4ade80">After</div>
+      <div style="color:#94a3b8;font-size:12px;margin-top:6px">
+        A <code style="color:#818cf8">useAnimatedNumber</code> composable tweens the displayed value over <code style="color:#818cf8">300ms ease-out-expo</code> using <code style="color:#818cf8">requestAnimationFrame</code>. No library needed — ~20 lines.
+      </div>
+    </div>
+  </div>
+  <div style="background:#111827;border-radius:6px;padding:12px;margin-top:10px;font-size:12px;color:#64748b">
+    New file: <code style="color:#818cf8">src/composables/useAnimatedNumber.ts</code> — used in <code style="color:#818cf8">BudgetTotalsRow</code> + <code style="color:#818cf8">BudgetDifferenceRow</code>
+  </div>
+</div>
+
+<div class="section">
+  <h3>F · Dialog open / close</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px">
+    <div style="background:#1a1d2e;border-radius:8px;padding:14px;border:1px solid rgba(255,255,255,0.05)">
+      <div class="label" style="color:#ef4444">Before</div>
+      <div style="color:#94a3b8;font-size:12px;margin-top:6px">Dialog snaps in with no entrance.</div>
+    </div>
+    <div style="background:#1a1d2e;border-radius:8px;padding:14px;border:1px solid rgba(129,140,248,0.2)">
+      <div class="label" style="color:#4ade80">After</div>
+      <div style="color:#94a3b8;font-size:12px;margin-top:6px">
+        Dialog panel scales from <code style="color:#818cf8">0.95 → 1</code> + fades in over <code style="color:#818cf8">280ms ease-out-expo</code>. Backdrop fades separately at <code style="color:#818cf8">200ms</code>. Exit reverses at <code style="color:#818cf8">200ms</code>.
+      </div>
+    </div>
+  </div>
+  <div style="background:#111827;border-radius:6px;padding:12px;margin-top:10px;font-size:12px;color:#64748b">
+    Vue components: <code style="color:#818cf8">ItemFormDialog</code>, <code style="color:#818cf8">CategoryFormDialog</code>, <code style="color:#818cf8">CopyYearDialog</code> — <code style="color:#818cf8">&lt;Transition name="dialog"&gt;</code> wrapper
+  </div>
+</div>
+
+<div class="section">
+  <h3>G · Year switching</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px">
+    <div style="background:#1a1d2e;border-radius:8px;padding:14px;border:1px solid rgba(255,255,255,0.05)">
+      <div class="label" style="color:#ef4444">Before</div>
+      <div style="color:#94a3b8;font-size:12px;margin-top:6px">Table replaces instantly on year change.</div>
+    </div>
+    <div style="background:#1a1d2e;border-radius:8px;padding:14px;border:1px solid rgba(129,140,248,0.2)">
+      <div class="label" style="color:#4ade80">After</div>
+      <div style="color:#94a3b8;font-size:12px;margin-top:6px">
+        Table slides out in the direction of navigation (← for prev year, → for next) and new year slides in from opposite side. Uses <code style="color:#818cf8">&lt;Transition :name="slideDirection"&gt;</code> with a dynamic name based on whether year increased or decreased.
+      </div>
+    </div>
+  </div>
+  <div style="background:#111827;border-radius:6px;padding:12px;margin-top:10px;font-size:12px;color:#64748b">
+    Vue component: <code style="color:#818cf8">App.vue</code> — wrap <code style="color:#818cf8">&lt;BudgetTable&gt;</code> in <code style="color:#818cf8">&lt;Transition :name="yearSlideDir"&gt;</code>, track direction in <code style="color:#818cf8">budgetStore</code>
+  </div>
+</div>

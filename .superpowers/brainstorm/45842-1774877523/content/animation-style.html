@@ -1,0 +1,78 @@
+<h2>What animation style fits the app?</h2>
+<p class="subtitle">This shapes everything — the speed, easing, and personality of all transitions</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="subtle" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 24px; background: #0f1117; border-radius: 8px; overflow: hidden;">
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 10px; background: #1a1d2e; padding: 10px 14px; border-radius: 6px; border-left: 3px solid #4ade80;">
+          <span style="color: #4ade80; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Income</span>
+          <span style="color: #94a3b8; font-size: 11px; margin-left: auto;">▼</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; background: #1a1d2e; padding: 8px 14px 8px 28px; border-radius: 6px; opacity: 0.85;">
+          <span style="color: #e2e8f0; font-size: 12px;">Salary</span>
+          <span style="color: #94a3b8; font-size: 12px; margin-left: auto;">5 000 kr</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; background: #1a1d2e; padding: 8px 14px 8px 28px; border-radius: 6px; opacity: 0.7;">
+          <span style="color: #e2e8f0; font-size: 12px;">Freelance</span>
+          <span style="color: #94a3b8; font-size: 12px; margin-left: auto;">1 200 kr</span>
+        </div>
+      </div>
+      <div style="margin-top: 12px; text-align: center; color: #475569; font-size: 10px; font-style: italic;">Smooth, linear fade — rows glide in quietly</div>
+    </div>
+    <div class="card-body">
+      <h3>Subtle & Professional</h3>
+      <p>Short fade + slight slide. Quick (150–200ms), linear easing. Feels calm, focused, unobtrusive. Best for a tool you use every day.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="sleek" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 24px; background: #0f1117; border-radius: 8px; overflow: hidden;">
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 10px; background: linear-gradient(135deg, #1a1d2e, #1e2240); padding: 10px 14px; border-radius: 6px; border-left: 3px solid #818cf8; box-shadow: 0 0 12px rgba(129,140,248,0.15);">
+          <span style="color: #818cf8; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Income</span>
+          <span style="color: #94a3b8; font-size: 11px; margin-left: auto;">▼</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; background: #1a1d2e; padding: 8px 14px 8px 28px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);">
+          <span style="color: #e2e8f0; font-size: 12px;">Salary</span>
+          <span style="color: #818cf8; font-size: 12px; font-weight: 600; margin-left: auto;">5 000 kr</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; background: #1a1d2e; padding: 8px 14px 8px 28px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.03); opacity: 0.8;">
+          <span style="color: #e2e8f0; font-size: 12px;">Freelance</span>
+          <span style="color: #818cf8; font-size: 12px; font-weight: 600; margin-left: auto;">1 200 kr</span>
+        </div>
+      </div>
+      <div style="margin-top: 12px; text-align: center; color: #475569; font-size: 10px; font-style: italic;">Staggered cascade with cubic-bezier ease-out</div>
+    </div>
+    <div class="card-body">
+      <h3>Sleek & Premium</h3>
+      <p>Staggered entrance animations, cubic-bezier easing, glowing accents on hover. Each row cascades in with a slight delay. Feels like a polished SaaS product.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="playful" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 24px; background: #0f1117; border-radius: 8px; overflow: hidden;">
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 10px; background: #1a1d2e; padding: 10px 14px; border-radius: 8px; border-left: 4px solid #f472b6; transform: translateY(0);">
+          <span style="color: #f472b6; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Income ✦</span>
+          <span style="color: #94a3b8; font-size: 11px; margin-left: auto;">▼</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; background: linear-gradient(135deg, #1a1d2e, #1f1a2e); padding: 8px 14px 8px 28px; border-radius: 8px;">
+          <span style="color: #e2e8f0; font-size: 12px;">Salary</span>
+          <span style="background: linear-gradient(90deg, #818cf8, #f472b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 12px; font-weight: 700; margin-left: auto;">5 000 kr</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; background: linear-gradient(135deg, #1a1d2e, #1a2a1f); padding: 8px 14px 8px 28px; border-radius: 8px; opacity: 0.85;">
+          <span style="color: #e2e8f0; font-size: 12px;">Freelance</span>
+          <span style="background: linear-gradient(90deg, #4ade80, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 12px; font-weight: 700; margin-left: auto;">1 200 kr</span>
+        </div>
+      </div>
+      <div style="margin-top: 12px; text-align: center; color: #475569; font-size: 10px; font-style: italic;">Spring-physics bounce, color pops on number changes</div>
+    </div>
+    <div class="card-body">
+      <h3>Playful & Expressive</h3>
+      <p>Spring-physics bounce, number counters that animate on change, color gradients, and micro-interactions on every click. High energy, memorable.</p>
+    </div>
+  </div>
+
+</div>

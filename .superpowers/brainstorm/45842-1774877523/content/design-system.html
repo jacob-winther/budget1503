@@ -1,0 +1,69 @@
+<h2>Animation System Foundation</h2>
+<p class="subtitle">CSS custom properties that govern every transition in the app</p>
+
+<div class="section">
+  <h3>Timing & Easing</h3>
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px;">
+
+    <div style="background: #1a1d2e; border-radius: 8px; padding: 16px; border: 1px solid rgba(129,140,248,0.15);">
+      <div class="label">--ease-out-expo</div>
+      <div style="color: #e2e8f0; font-size: 13px; margin-top: 6px; font-family: monospace;">cubic-bezier(0.16, 1, 0.3, 1)</div>
+      <div style="color: #64748b; font-size: 11px; margin-top: 4px;">Fast start, glides to rest. Used for entrances.</div>
+      <div style="margin-top: 10px; height: 3px; background: linear-gradient(90deg, #818cf8 0%, #818cf8 70%, transparent 100%); border-radius: 2px;"></div>
+    </div>
+
+    <div style="background: #1a1d2e; border-radius: 8px; padding: 16px; border: 1px solid rgba(129,140,248,0.15);">
+      <div class="label">--ease-in-expo</div>
+      <div style="color: #e2e8f0; font-size: 13px; margin-top: 6px; font-family: monospace;">cubic-bezier(0.7, 0, 0.84, 0)</div>
+      <div style="color: #64748b; font-size: 11px; margin-top: 4px;">Slow start, fast exit. Used for exits.</div>
+      <div style="margin-top: 10px; height: 3px; background: linear-gradient(90deg, transparent 0%, #f472b6 100%); border-radius: 2px;"></div>
+    </div>
+
+    <div style="background: #1a1d2e; border-radius: 8px; padding: 16px; border: 1px solid rgba(129,140,248,0.15);">
+      <div class="label">--dur-enter</div>
+      <div style="color: #e2e8f0; font-size: 13px; margin-top: 6px; font-family: monospace;">280ms</div>
+      <div style="color: #64748b; font-size: 11px; margin-top: 4px;">All entrance animations. Balanced feel.</div>
+    </div>
+
+    <div style="background: #1a1d2e; border-radius: 8px; padding: 16px; border: 1px solid rgba(129,140,248,0.15);">
+      <div class="label">--dur-exit</div>
+      <div style="color: #e2e8f0; font-size: 13px; margin-top: 6px; font-family: monospace;">200ms</div>
+      <div style="color: #64748b; font-size: 11px; margin-top: 4px;">Exits slightly faster — less drag on workflow.</div>
+    </div>
+
+    <div style="background: #1a1d2e; border-radius: 8px; padding: 16px; border: 1px solid rgba(129,140,248,0.15);">
+      <div class="label">--dur-micro</div>
+      <div style="color: #e2e8f0; font-size: 13px; margin-top: 6px; font-family: monospace;">150ms</div>
+      <div style="color: #64748b; font-size: 11px; margin-top: 4px;">Hovers, highlights, small state changes.</div>
+    </div>
+
+    <div style="background: #1a1d2e; border-radius: 8px; padding: 16px; border: 1px solid rgba(129,140,248,0.15);">
+      <div class="label">--stagger-row</div>
+      <div style="color: #e2e8f0; font-size: 13px; margin-top: 6px; font-family: monospace;">30ms per row</div>
+      <div style="color: #64748b; font-size: 11px; margin-top: 4px;">Delay multiplier for cascading row entrances.</div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section">
+  <h3>What this unlocks</h3>
+  <p style="color: #94a3b8; font-size: 13px; line-height: 1.6;">
+    All 7 animation moments are built from these 5 variables. Changing <code style="background:#1a1d2e;padding:2px 5px;border-radius:3px;color:#818cf8">--dur-enter</code> in one place adjusts every entrance in the app. This keeps the feel consistent and makes future tuning trivial.
+  </p>
+</div>
+
+<div class="section">
+  <h3>Lives in</h3>
+  <div style="background: #1a1d2e; border-radius: 8px; padding: 14px 16px; font-family: monospace; font-size: 12px; color: #94a3b8; border: 1px solid rgba(255,255,255,0.05);">
+    <span style="color: #475569;">/* src/style.css — added to :root */</span><br>
+    <span style="color: #818cf8;">:root</span> {<br>
+    &nbsp;&nbsp;<span style="color: #4ade80;">--ease-out-expo</span>: cubic-bezier(0.16, 1, 0.3, 1);<br>
+    &nbsp;&nbsp;<span style="color: #4ade80;">--ease-in-expo</span>: cubic-bezier(0.7, 0, 0.84, 0);<br>
+    &nbsp;&nbsp;<span style="color: #4ade80;">--dur-enter</span>: 280ms;<br>
+    &nbsp;&nbsp;<span style="color: #4ade80;">--dur-exit</span>: 200ms;<br>
+    &nbsp;&nbsp;<span style="color: #4ade80;">--dur-micro</span>: 150ms;<br>
+    &nbsp;&nbsp;<span style="color: #4ade80;">--stagger-row</span>: 30ms;<br>
+    }
+  </div>
+</div>
