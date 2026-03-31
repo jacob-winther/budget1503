@@ -115,6 +115,13 @@ watch(baseAmount, (value) => {
   }
 })
 
+watch(frequency, (value) => {
+  if (value !== 'monthly') {
+    useOverrides.value = false
+    months.value = Array.from({ length: 12 }, () => Number(baseAmount.value ?? 0))
+  }
+})
+
 const onToggleOverrides = () => {
   useOverrides.value = !useOverrides.value
   if (!useOverrides.value) {
@@ -202,7 +209,7 @@ const onDialogKeydown = (event: KeyboardEvent) => {
 
       <label>
         <span>Frequency</span>
-        <SelectButton v-model="frequency" :options="frequencyOptions" option-label="label" option-value="value" />
+        <SelectButton v-model="frequency" :options="frequencyOptions" option-label="label" option-value="value" :allow-empty="false" />
       </label>
 
       <label>
