@@ -1,6 +1,7 @@
 import { computed, ref, watch, type ComputedRef, type Ref } from 'vue'
 import { defineStore } from 'pinia'
 import type {
+  Budget,
   BudgetCategory,
   BudgetData,
   BudgetItem,
@@ -83,21 +84,29 @@ const sectionTotals = (section: Pick<BudgetSection, 'categories'>): Totals => {
   }
 }
 
+const createEmptySections = (): BudgetSection[] => [
+  {
+    id: createId(),
+    name: 'Expenses',
+    type: 'expense',
+    collapsed: false,
+    categories: [],
+  },
+  {
+    id: createId(),
+    name: 'Income',
+    type: 'income',
+    collapsed: false,
+    categories: [],
+  },
+]
+
 const createEmptyYear = (): YearData => ({
-  sections: [
+  budgets: [
     {
       id: createId(),
-      name: 'Expenses',
-      type: 'expense',
-      collapsed: false,
-      categories: [],
-    },
-    {
-      id: createId(),
-      name: 'Income',
-      type: 'income',
-      collapsed: false,
-      categories: [],
+      name: 'Default',
+      sections: createEmptySections(),
     },
   ],
 })
@@ -108,56 +117,62 @@ const createSeedData = (year: number): BudgetData => {
 
   return {
     [year]: {
-      sections: [
+      budgets: [
         {
           id: createId(),
-          name: 'Expenses',
-          type: 'expense',
-          collapsed: false,
-          categories: [
+          name: 'Default',
+          sections: [
             {
-              id: expenseCategoryId,
-              name: 'Fixed Costs',
+              id: createId(),
+              name: 'Expenses',
+              type: 'expense',
               collapsed: false,
-              items: [
+              categories: [
                 {
-                  id: createId(),
-                  categoryId: expenseCategoryId,
-                  name: 'Rent',
-                  baseAmount: 1200,
-                  months: Array.from({ length: 12 }, () => 1200),
-                  frequency: 'monthly' as ItemFrequency,
-                },
-                {
-                  id: createId(),
-                  categoryId: expenseCategoryId,
-                  name: 'Internet',
-                  baseAmount: 60,
-                  months: Array.from({ length: 12 }, () => 60),
-                  frequency: 'monthly' as ItemFrequency,
+                  id: expenseCategoryId,
+                  name: 'Fixed Costs',
+                  collapsed: false,
+                  items: [
+                    {
+                      id: createId(),
+                      categoryId: expenseCategoryId,
+                      name: 'Rent',
+                      baseAmount: 1200,
+                      months: Array.from({ length: 12 }, () => 1200),
+                      frequency: 'monthly' as ItemFrequency,
+                    },
+                    {
+                      id: createId(),
+                      categoryId: expenseCategoryId,
+                      name: 'Internet',
+                      baseAmount: 60,
+                      months: Array.from({ length: 12 }, () => 60),
+                      frequency: 'monthly' as ItemFrequency,
+                    },
+                  ],
                 },
               ],
             },
-          ],
-        },
-        {
-          id: createId(),
-          name: 'Income',
-          type: 'income',
-          collapsed: false,
-          categories: [
             {
-              id: incomeCategoryId,
-              name: 'Salary',
+              id: createId(),
+              name: 'Income',
+              type: 'income',
               collapsed: false,
-              items: [
+              categories: [
                 {
-                  id: createId(),
-                  categoryId: incomeCategoryId,
-                  name: 'Primary Salary',
-                  baseAmount: 3200,
-                  months: Array.from({ length: 12 }, () => 3200),
-                  frequency: 'monthly' as ItemFrequency,
+                  id: incomeCategoryId,
+                  name: 'Salary',
+                  collapsed: false,
+                  items: [
+                    {
+                      id: createId(),
+                      categoryId: incomeCategoryId,
+                      name: 'Primary Salary',
+                      baseAmount: 3200,
+                      months: Array.from({ length: 12 }, () => 3200),
+                      frequency: 'monthly' as ItemFrequency,
+                    },
+                  ],
                 },
               ],
             },
@@ -170,11 +185,13 @@ const createSeedData = (year: number): BudgetData => {
 
 const normalizeBudgetData = (budgetData: BudgetData): void => {
   for (const yearData of Object.values(budgetData)) {
-    for (const section of yearData.sections) {
-      for (const category of section.categories) {
-        for (const item of category.items) {
-          if (!item.frequency) {
-            item.frequency = 'monthly'
+    for (const budget of yearData.budgets) {
+      for (const section of budget.sections) {
+        for (const category of section.categories) {
+          for (const item of category.items) {
+            if (!item.frequency) {
+              item.frequency = 'monthly'
+            }
           }
         }
       }
@@ -188,9 +205,10 @@ const ensureYearExists = (state: BudgetData, year: number): void => {
   }
 }
 
-const remapYearIds = (yearData: YearData, copiedFromYear: number | null = null, targetYear = 0): YearData => {
-  const cloned = clone(yearData)
+const remapBudgetIds = (budget: Budget, copiedFromYear: number | null = null, targetYear = 0): Budget => {
+  const cloned = clone(budget)
 
+  cloned.id = createId()
   cloned.sections = cloned.sections.map((section) => ({
     ...section,
     id: createId(),
@@ -272,13 +290,19 @@ export const useBudgetStore = defineStore('budget', () => {
   const currentYear = ref(new Date().getFullYear())
   const yearSlideDirection = ref<'slide-left' | 'slide-right'>('slide-left')
   const data = ref(createSeedData(currentYear.value))
+  const currentBudgetId = ref<string | null>(null)
 
   const currentYearData = computed(() => {
     ensureYearExists(data.value, currentYear.value)
     return data.value[currentYear.value]
   })
 
-  const sections = computed(() => currentYearData.value.sections)
+  const currentBudget = computed(() => {
+    const budgets = currentYearData.value.budgets
+    return budgets.find((b) => b.id === currentBudgetId.value) ?? budgets[0]
+  })
+
+  const sections = computed(() => currentBudget.value.sections)
   const expenseSection = computed(() => sections.value.find((section) => section.type === 'expense'))
   const incomeSection = computed(() => sections.value.find((section) => section.type === 'income'))
 
@@ -321,7 +345,21 @@ export const useBudgetStore = defineStore('budget', () => {
       const parsed = JSON.parse(raw) as Partial<SerializedBudgetStore>
 
       if (parsed && typeof parsed === 'object' && parsed.data) {
-        data.value = parsed.data
+        // Migrate old format: yearData.sections → yearData.budgets
+        for (const yearData of Object.values(parsed.data) as any[]) {
+          if (Array.isArray(yearData.sections) && !Array.isArray(yearData.budgets)) {
+            yearData.budgets = [
+              {
+                id: createId(),
+                name: 'Default',
+                sections: yearData.sections,
+              },
+            ]
+            delete yearData.sections
+          }
+        }
+
+        data.value = parsed.data as BudgetData
         normalizeBudgetData(data.value)
       }
 
@@ -347,35 +385,76 @@ export const useBudgetStore = defineStore('budget', () => {
 
   const setYear = (year: number): void => {
     currentYear.value = Number(year)
+    currentBudgetId.value = null
     ensureYearExists(data.value, currentYear.value)
   }
 
   const goToPreviousYear = (): void => {
     yearSlideDirection.value = 'slide-right'
     currentYear.value -= 1
+    currentBudgetId.value = null
   }
+
   const goToNextYear = (): void => {
     yearSlideDirection.value = 'slide-left'
     currentYear.value += 1
+    currentBudgetId.value = null
   }
 
-  const copyPreviousYear = (): boolean => {
-    const sourceYear = currentYear.value - 1
+  const setCurrentBudget = (budgetId: string): void => {
+    currentBudgetId.value = budgetId
+  }
 
-    if (!data.value[sourceYear]) {
-      return false
+  const addBudgetForYear = (year: number, name: string): Budget => {
+    ensureYearExists(data.value, year)
+    const budget: Budget = {
+      id: createId(),
+      name: normalizeName(name) || 'New Budget',
+      sections: createEmptySections(),
+    }
+    data.value[year].budgets.push(budget)
+    return budget
+  }
+
+  const deleteBudget = (year: number, budgetId: string): boolean => {
+    const yearData = data.value[year]
+    if (!yearData) return false
+    if (yearData.budgets.length <= 1) return false // always keep at least one
+
+    const index = yearData.budgets.findIndex((b) => b.id === budgetId)
+    if (index === -1) return false
+
+    yearData.budgets.splice(index, 1)
+
+    if (currentBudgetId.value === budgetId) {
+      currentBudgetId.value = null
     }
 
-    data.value[currentYear.value] = remapYearIds(data.value[sourceYear], sourceYear, currentYear.value)
     return true
   }
 
-  const copyYear = (fromYear: number, toYear: number): boolean => {
-    if (!data.value[fromYear]) {
-      return false
-    }
+  const renameBudget = (year: number, budgetId: string, name: string): boolean => {
+    const yearData = data.value[year]
+    if (!yearData) return false
 
-    data.value[toYear] = remapYearIds(data.value[fromYear], fromYear, toYear)
+    const budget = yearData.budgets.find((b) => b.id === budgetId)
+    if (!budget) return false
+
+    const normalized = normalizeName(name)
+    if (!normalized) return false
+
+    budget.name = normalized
+    return true
+  }
+
+  const copyBudget = (fromYear: number, fromBudgetId: string, toYear: number, name: string): boolean => {
+    const sourceBudget = data.value[fromYear]?.budgets.find((b) => b.id === fromBudgetId)
+    if (!sourceBudget) return false
+
+    ensureYearExists(data.value, toYear)
+    const copied = remapBudgetIds(sourceBudget, fromYear, toYear)
+    copied.name = normalizeName(name) || sourceBudget.name
+    data.value[toYear].budgets.push(copied)
     return true
   }
 
@@ -669,8 +748,10 @@ export const useBudgetStore = defineStore('budget', () => {
   return {
     MONTHS,
     currentYear,
+    currentBudgetId,
     yearSlideDirection,
     data,
+    currentYearData,
     sections,
     expenseSection,
     incomeSection,
@@ -681,8 +762,11 @@ export const useBudgetStore = defineStore('budget', () => {
     setYear,
     goToPreviousYear,
     goToNextYear,
-    copyPreviousYear,
-    copyYear,
+    setCurrentBudget,
+    addBudgetForYear,
+    deleteBudget,
+    renameBudget,
+    copyBudget,
     isItemCopiedFromYear,
     getRemainingCopiedMonthCount,
     fillRemainingCopiedMonthsFrom,

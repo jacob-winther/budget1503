@@ -40,12 +40,41 @@ const isBudgetFilePayload = (value: unknown): value is BudgetFilePayload => {
   return isBudgetData(value.data)
 }
 
+const stripEmptyData = (payload: BudgetFilePayload): BudgetFilePayload => {
+  const data: BudgetData = {}
+
+  for (const [yearKey, yearData] of Object.entries(payload.data)) {
+    const budgets = yearData.budgets
+      .map((budget) => ({
+        ...budget,
+        sections: budget.sections
+          .map((section) => ({
+            ...section,
+            categories: section.categories
+              .map((category) => ({
+                ...category,
+                items: category.items.map(({ copiedFromYear: _cfY, copiedBaselineMonths: _cbM, ...item }) => item),
+              }))
+              .filter((category) => category.items.length > 0),
+          }))
+          .filter((section) => section.categories.length > 0),
+      }))
+      .filter((budget) => budget.sections.length > 0)
+
+    if (budgets.length > 0) {
+      data[Number(yearKey)] = { budgets }
+    }
+  }
+
+  return { ...payload, data }
+}
+
 export const createBudgetExportJson = (payload: BudgetFilePayload): string => {
   const envelope: BudgetFileEnvelope = {
     version: BUDGET_FILE_VERSION,
     exportedAt: new Date().toISOString(),
     app: 'budget-planner',
-    payload,
+    payload: stripEmptyData(payload),
   }
 
   return JSON.stringify(envelope, null, 2)

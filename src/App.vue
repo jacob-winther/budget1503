@@ -35,24 +35,18 @@ const flatCategories = computed<FlatCategoryOption[]>(() => {
   )
 })
 
-const availableCopyYears = computed(() => {
-  return Object.keys(store.data)
-    .map((value) => Number(value))
-    .filter((year) => Number.isFinite(year) && year !== store.currentYear)
-    .sort((a, b) => b - a)
+const availableCopyBudgets = computed(() => {
+  return Object.entries(store.data)
+    .flatMap(([year, yearData]) =>
+      yearData.budgets.map((b) => ({
+        year: Number(year),
+        budgetId: b.id,
+        budgetName: b.name,
+      }))
+    )
+    .sort((a, b) => b.year - a.year)
 })
 
-const currentYearHasEntries = computed(() => {
-  return store.sections.some((section) => section.categories.some((category) => category.items.length > 0))
-})
-
-const confirmOverwriteCopy = (): boolean => {
-  if (!currentYearHasEntries.value) {
-    return true
-  }
-
-  return window.confirm('Current year already has budget entries. Copying will overwrite them. Continue?')
-}
 
 const openNewItemDialog = (categoryId: string | null = null) => {
   itemDialogMode.value = 'create'
@@ -186,28 +180,36 @@ const onSaveCategory = (payload: SaveCategoryPayload) => {
   showCategoryDialog.value = false
 }
 
-const onCopyPreviousYear = () => {
-  const previousYear = store.currentYear - 1
-  const hasPreviousYearData = availableCopyYears.value.includes(previousYear)
-
-  if (hasPreviousYearData && !confirmOverwriteCopy()) {
-    return
-  }
-
-  const copied = store.copyPreviousYear()
-
-  if (!copied && availableCopyYears.value.length > 0) {
-    showCopyYearDialog.value = true
-  }
+const onCopyBudget = () => {
+  showCopyYearDialog.value = true
 }
 
-const onConfirmCopyYear = ({ fromYear, toYear }: { fromYear: number; toYear: number }) => {
-  if (!confirmOverwriteCopy()) {
-    return
-  }
-
-  store.copyYear(fromYear, toYear)
+const onConfirmCopyBudget = ({ fromYear, fromBudgetId, newName }: { fromYear: number; fromBudgetId: string; newName: string }) => {
+  store.copyBudget(fromYear, fromBudgetId, store.currentYear, newName)
   showCopyYearDialog.value = false
+}
+
+const onCreateBudget = () => {
+  const name = window.prompt('Budget name:', 'New Budget')
+  if (!name?.trim()) return
+  const budget = store.addBudgetForYear(store.currentYear, name.trim())
+  store.setCurrentBudget(budget.id)
+}
+
+const onRenameBudget = (budgetId: string) => {
+  const budget = store.currentYearData.budgets.find((b) => b.id === budgetId)
+  if (!budget) return
+  const name = window.prompt('Rename budget:', budget.name)
+  if (!name?.trim()) return
+  store.renameBudget(store.currentYear, budgetId, name.trim())
+}
+
+const onDeleteBudget = (budgetId: string) => {
+  const budget = store.currentYearData.budgets.find((b) => b.id === budgetId)
+  if (!budget) return
+  const confirmed = window.confirm(`Delete "${budget.name}"?`)
+  if (!confirmed) return
+  store.deleteBudget(store.currentYear, budgetId)
 }
 
 const onExportBudget = () => {
@@ -269,9 +271,15 @@ const onImportBudgetSelected = async (event: Event) => {
 
     <BudgetToolbar class="content-width"
       :year="store.currentYear"
+      :budgets="store.currentYearData.budgets.map(b => ({ id: b.id, name: b.name }))"
+      :current-budget-id="store.currentBudgetId"
       @prev-year="store.goToPreviousYear"
       @next-year="store.goToNextYear"
-      @copy-prev-year="onCopyPreviousYear"
+      @create-budget="onCreateBudget"
+      @select-budget="store.setCurrentBudget"
+      @rename-budget="onRenameBudget"
+      @delete-budget="onDeleteBudget"
+      @copy-budget="onCopyBudget"
       @import-budget="onImportBudgetClick"
       @export-budget="onExportBudget"
     />
@@ -338,8 +346,8 @@ const onImportBudgetSelected = async (event: Event) => {
     <CopyYearDialog
       :visible="showCopyYearDialog"
       :current-year="store.currentYear"
-      :years="availableCopyYears"
-      @confirm="onConfirmCopyYear"
+      :options="availableCopyBudgets"
+      @confirm="onConfirmCopyBudget"
       @close="showCopyYearDialog = false"
     />
   </main>

@@ -32,8 +32,14 @@ export interface BudgetSection {
   categories: BudgetCategory[]
 }
 
-export interface YearData {
+export interface Budget {
+  id: string
+  name: string
   sections: BudgetSection[]
+}
+
+export interface YearData {
+  budgets: Budget[]
 }
 
 export type BudgetData = Record<number, YearData>
