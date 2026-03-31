@@ -119,6 +119,7 @@ const onSaveEdit = () => {
 <template>
   <tr class="item-row" :class="{ 'expense-item-row': sectionType === 'expense', 'is-editing': isEditing }">
     <td class="sticky-left name-col item-name">
+      <i v-if="item.frequency !== 'monthly'" class="pi pi-calculator item-frequency-icon" :title="item.frequency === 'weekly' ? 'Weekly' : 'Quarterly'" />
       <div class="item-row-content">
         <div class="item-main-line">
           <Transition name="fade" mode="out-in">

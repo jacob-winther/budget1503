@@ -125,6 +125,20 @@ const deleteInlineCategory = (categoryId: string) => {
 }
 
 const startInlineItemEdit = (itemId: string) => {
+  const item = store.sections
+    .flatMap(s => s.categories)
+    .flatMap(c => c.items)
+    .find(i => i.id === itemId)
+
+  if (item && item.frequency !== 'monthly') {
+    editingItem.value = item
+    itemDialogMode.value = 'edit'
+    creatingItemCategoryId.value = null
+    editingCategoryId.value = null
+    showItemDialog.value = true
+    return
+  }
+
   editingItemId.value = itemId
   editingCategoryId.value = null
 }

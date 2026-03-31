@@ -171,6 +171,16 @@ body {
   padding-left: 24px;
 }
 
+.item-frequency-icon {
+  position: absolute;
+  left: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.65rem;
+  color: #8fa3bc;
+  pointer-events: none;
+}
+
 .expense-item-row td {
   background: #fcfdff;
 }

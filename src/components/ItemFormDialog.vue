@@ -44,8 +44,8 @@ const quarterStartMonth = ref<MonthIndex>(0)
 const labels: string[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 const frequencyOptions = [
-  { label: 'Monthly', value: 'monthly' },
   { label: 'Weekly', value: 'weekly' },
+  { label: 'Monthly', value: 'monthly' },
   { label: 'Quarterly', value: 'quarterly' },
 ]
 
