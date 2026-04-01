@@ -229,20 +229,18 @@ const onDialogKeydown = (event: KeyboardEvent) => {
     </div>
 
     <template v-if="frequency === 'monthly'">
-      <div class="override-toggle">
-        <Button
-          :label="useOverrides ? 'Disable Monthly Overrides' : 'Enable Monthly Overrides'"
-          severity="secondary"
-          text
-          @click="onToggleOverrides"
-        />
-      </div>
+      <div class="override-section">
+        <button type="button" class="override-section-title" @click="onToggleOverrides">
+          <i class="pi" :class="useOverrides ? 'pi-chevron-down' : 'pi-chevron-right'" />
+          Monthly overrides
+        </button>
 
-      <div v-if="useOverrides" class="month-grid">
-        <label v-for="(monthLabel, index) in labels" :key="monthLabel">
-          <span>{{ monthLabel }}</span>
-          <InputNumber v-model="months[index]" mode="decimal" :min="0" class="w-full" />
-        </label>
+        <div v-if="useOverrides" class="month-grid">
+          <label v-for="(monthLabel, index) in labels" :key="monthLabel" class="month-grid-label">
+            <span>{{ monthLabel }}</span>
+            <InputNumber v-model="months[index]" mode="decimal" :min="0" class="w-full"/>
+          </label>
+        </div>
       </div>
     </template>
 

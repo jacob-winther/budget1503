@@ -425,15 +425,56 @@ input[type='number']::-webkit-inner-spin-button {
   gap: 6px;
 }
 
-.override-toggle {
-  margin-top: 8px;
+.override-section {
+  margin-top: 4px;
+  padding-top: 14px;
+  border-top: 1px solid #d7dde6;
+}
+
+.override-section-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #4a6480;
+  cursor: pointer;
+}
+
+.override-section-title:hover {
+  color: #6366f1;
 }
 
 .month-grid {
-  margin-top: 8px;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
+}
+
+.month-grid-label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 0.78rem;
+  padding: 8px 10px 12px;
+  background: #f7fafd;
+  border: 1px solid #e3eaf3;
+  border-radius: 6px;
+}
+
+.month-grid-label .p-inputnumber {
+  width: 100%;
+  min-width: 0;
+}
+
+.month-grid-label .p-inputnumber input {
+  width: 100%;
+  min-width: 0;
+  text-align: right;
 }
 
 @media (max-width: 1080px) {
