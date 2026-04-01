@@ -556,4 +556,399 @@ describe('budgetStore', () => {
       expect(result).toBe(false)
     })
   })
+
+  it('uses timestamp-based id fallback when crypto.randomUUID is unavailable', () => {
+    const original = (globalThis as any).crypto
+    Object.defineProperty(globalThis, 'crypto', { value: { randomUUID: undefined }, configurable: true, writable: true })
+    const store = useBudgetStore()
+    const cat = store.addCategory({ sectionType: 'expense', name: 'NoCrypto' })
+    expect(cat).toBeTruthy()
+    expect(typeof cat!.id).toBe('string')
+    Object.defineProperty(globalThis, 'crypto', { value: original, configurable: true, writable: true })
+  })
+
+  it('normalizes NaN/null/Infinity month values to 0', () => {
+    const store = useBudgetStore()
+    const cat = store.addCategory({ sectionType: 'expense', name: 'Test' })!
+    const item = store.addItem({
+      categoryId: cat.id,
+      name: 'Broken',
+      baseAmount: 100,
+      months: [null, undefined, NaN, Infinity, -Infinity, 100, 100, 100, 100, 100, 100, 100] as any,
+    })!
+    expect(item.months[0]).toBe(0)
+    expect(item.months[1]).toBe(0)
+    expect(item.months[2]).toBe(0)
+    expect(item.months[3]).toBe(0)
+    expect(item.months[4]).toBe(0)
+    expect(item.months[5]).toBe(100)
+  })
+
+  it('normalizes null name to empty via normalizeName', () => {
+    const store = useBudgetStore()
+    expect(store.addCategory({ sectionType: 'expense', name: null as any })).toBeNull()
+  })
+
+  it('normalizes missing item frequency to monthly when loading from storage', () => {
+    const year = new Date().getFullYear()
+    localStorage.setItem(
+      'budget-app-data-v1',
+      JSON.stringify({
+        currentYear: year,
+        data: {
+          [year]: {
+            budgets: [{
+              id: 'b1', name: 'Default',
+              sections: [
+                {
+                  id: 's1', name: 'Expenses', type: 'expense', collapsed: false,
+                  categories: [{
+                    id: 'c1', name: 'Fixed', collapsed: false,
+                    items: [{ id: 'i1', categoryId: 'c1', name: 'Rent', baseAmount: 1000, months: Array(12).fill(1000) }],
+                  }],
+                },
+                { id: 's2', name: 'Income', type: 'income', collapsed: false, categories: [] },
+              ],
+            }],
+          },
+        },
+      }),
+    )
+    const store = useBudgetStore()
+    const item = getExpenseSection(store).categories[0].items[0]
+    expect(item.frequency).toBe('monthly')
+  })
+
+  it('migrates old year-level sections format to budgets array', () => {
+    const year = new Date().getFullYear()
+    localStorage.setItem(
+      'budget-app-data-v1',
+      JSON.stringify({
+        currentYear: year,
+        data: {
+          [year]: {
+            sections: [
+              { id: 's1', name: 'Expenses', type: 'expense', collapsed: false, categories: [] },
+              { id: 's2', name: 'Income', type: 'income', collapsed: false, categories: [] },
+            ],
+          },
+        },
+      }),
+    )
+    const store = useBudgetStore()
+    expect(store.currentYearData.budgets).toHaveLength(1)
+    expect(store.currentYearData.budgets[0].name).toBe('Default')
+    expect(store.currentYearData.budgets[0].sections).toHaveLength(2)
+  })
+
+  it('restores currentYear from storage', () => {
+    const savedYear = new Date().getFullYear() - 2
+    localStorage.setItem('budget-app-data-v1', JSON.stringify({ currentYear: savedYear, data: {} }))
+    const store = useBudgetStore()
+    expect(store.currentYear).toBe(savedYear)
+  })
+
+  it('skips loadFromStorage silently when localStorage is undefined', () => {
+    Object.defineProperty(globalThis, 'localStorage', { value: undefined, configurable: true, writable: true })
+    expect(() => useBudgetStore()).not.toThrow()
+  })
+
+  it('skips saveToStorage silently when localStorage is undefined', () => {
+    const store = useBudgetStore()
+    Object.defineProperty(globalThis, 'localStorage', { value: undefined, configurable: true, writable: true })
+    expect(() => store.saveToStorage()).not.toThrow()
+  })
+
+  it('returns zero totals when expense or income section is absent', () => {
+    const store = useBudgetStore()
+    store.data[store.currentYear].budgets[0].sections = []
+    expect(store.expenseTotals.yearly).toBe(0)
+    expect(store.incomeTotals.yearly).toBe(0)
+    expect(store.monthlyDifference.every((v) => v === 0)).toBe(true)
+  })
+
+  it('getCategoryTotals, getSectionTotals, getItemYearTotal, getItemMonthlyAverage return correct values', () => {
+    const store = useBudgetStore()
+    const cat = store.addCategory({ sectionType: 'expense', name: 'Test' })!
+    const item = store.addItem({ categoryId: cat.id, name: 'Item', baseAmount: 120, months: Array(12).fill(120) })!
+
+    const catTotals = store.getCategoryTotals(cat)
+    expect(catTotals.yearly).toBe(1440)
+    expect(catTotals.average).toBe(120)
+
+    const section = getExpenseSection(store)
+    const sectionTotals = store.getSectionTotals(section)
+    expect(sectionTotals.yearly).toBeGreaterThanOrEqual(1440)
+
+    expect(store.getItemYearTotal(item)).toBe(1440)
+    expect(store.getItemMonthlyAverage(item)).toBe(120)
+  })
+
+  it('sets copiedBaselineMonths to null when source item months is not an array', () => {
+    const store = useBudgetStore()
+    const expSection = store.currentYearData.budgets[0].sections.find((s) => s.type === 'expense')!
+    expSection.categories[0].items[0].months = undefined as any
+
+    const fromYear = store.currentYear
+    const toYear = fromYear + 1
+    expect(store.copyBudget(fromYear, store.currentYearData.budgets[0].id, toYear, 'Copied')).toBe(true)
+
+    const copiedItem = store.data[toYear].budgets.at(-1)!.sections.flatMap((s) => s.categories).flatMap((c) => c.items)[0]
+    expect(copiedItem.copiedBaselineMonths).toBeNull()
+  })
+
+  it('recomputes months for weekly and quarterly items when copying to a new year', () => {
+    const store = useBudgetStore()
+    const cat = store.addCategory({ sectionType: 'expense', name: 'Recurring' })!
+    store.addItem({ categoryId: cat.id, name: 'Weekly', baseAmount: 100, months: [], frequency: 'weekly', weekday: 1 })
+    store.addItem({ categoryId: cat.id, name: 'Quarterly', baseAmount: 300, months: [], frequency: 'quarterly', quarterStartMonth: 0 })
+
+    const fromYear = store.currentYear
+    const toYear = fromYear + 1
+    expect(store.copyBudget(fromYear, store.currentYearData.budgets[0].id, toYear, 'Copied')).toBe(true)
+
+    const allItems = store.data[toYear].budgets.at(-1)!.sections.flatMap((s) => s.categories).flatMap((c) => c.items)
+    expect(allItems.find((i) => i.name === 'Weekly')!.frequency).toBe('weekly')
+    expect(allItems.find((i) => i.name === 'Quarterly')!.frequency).toBe('quarterly')
+  })
+
+  it('returns 0 from getRemainingCopiedMonthCount when item has no baseline months', () => {
+    const store = useBudgetStore()
+    const cat = store.addCategory({ sectionType: 'expense', name: 'Test' })!
+    const item = store.addItem({ categoryId: cat.id, name: 'Item', baseAmount: 100, months: [] })!
+    expect(store.getRemainingCopiedMonthCount(item.id, 0)).toBe(0)
+  })
+
+  it('falls back to source budget name when copy name is blank', () => {
+    const store = useBudgetStore()
+    const fromYear = store.currentYear
+    const toYear = fromYear + 1
+    const sourceName = store.currentYearData.budgets[0].name
+    store.copyBudget(fromYear, store.currentYearData.budgets[0].id, toYear, '   ')
+    expect(store.data[toYear].budgets.at(-1)!.name).toBe(sourceName)
+  })
+
+  it('isItemCopiedFromYear returns false for a non-copied item that exists', () => {
+    const store = useBudgetStore()
+    const cat = store.addCategory({ sectionType: 'expense', name: 'Test' })!
+    const item = store.addItem({ categoryId: cat.id, name: 'Item', baseAmount: 100, months: [] })!
+    expect(store.isItemCopiedFromYear(item.id)).toBe(false)
+  })
+
+  it('getRemainingCopiedMonthCount counts only months still matching baseline', () => {
+    const store = useBudgetStore()
+    const fromYear = store.currentYear
+    const toYear = fromYear + 1
+    store.copyBudget(fromYear, store.currentYearData.budgets[0].id, toYear, 'Copy')
+    store.setYear(toYear)
+    store.setCurrentBudget(store.data[toYear].budgets.at(-1)!.id)
+
+    const cat = getExpenseSection(store).categories[0]
+    const item = cat.items[0]
+    const months = item.months.map((v, i) => (i < 2 ? v + 999 : v))
+    store.editItem({ itemId: item.id, categoryId: cat.id, name: item.name, baseAmount: item.baseAmount, months })
+
+    // month 0 excluded, month 1 differs from baseline → only months 2–11 match (10)
+    expect(store.getRemainingCopiedMonthCount(item.id, 0)).toBe(10)
+  })
+
+  it('returns 0 from getRemainingCopiedMonthCount when copiedBaselineMonths is null', () => {
+    const store = useBudgetStore()
+    const cat = store.addCategory({ sectionType: 'expense', name: 'Test' })!
+    const item = store.addItem({ categoryId: cat.id, name: 'Item', baseAmount: 100, months: [] })!
+    item.copiedBaselineMonths = null
+    expect(store.getRemainingCopiedMonthCount(item.id, 0)).toBe(0)
+  })
+
+  it('uses empty string for categoryName when omitted (triggers ?? fallback)', () => {
+    const store = useBudgetStore()
+    // categoryName not provided → undefined ?? '' → '' → addCategory fails → null
+    expect(store.addItem({ categoryId: '', sectionType: 'expense', name: 'Test', baseAmount: 100, months: [] })).toBeNull()
+  })
+
+  it('defaults to monthly when both frequency arg and item frequency are absent', () => {
+    const store = useBudgetStore()
+    const cat = store.addCategory({ sectionType: 'expense', name: 'Test' })!
+    const item = store.addItem({ categoryId: cat.id, name: 'Item', baseAmount: 100, months: [] })!
+    delete (item as any).frequency
+    store.editItem({ itemId: item.id, categoryId: cat.id, name: 'Item', baseAmount: 100, months: [] })
+    const refreshed = getExpenseSection(store).categories.flatMap((c) => c.items).find((i) => i.id === item.id)!
+    expect(refreshed.frequency).toBe('monthly')
+  })
+
+  it('returns 0 from fillRemainingCopiedMonthsFrom when sourceMonthIndex is out of range', () => {
+    const store = useBudgetStore()
+    const cat = store.addCategory({ sectionType: 'expense', name: 'Test' })!
+    const item = store.addItem({ categoryId: cat.id, name: 'Item', baseAmount: 100, months: [] })!
+    expect(store.fillRemainingCopiedMonthsFrom(item.id, -1)).toBe(0)
+    expect(store.fillRemainingCopiedMonthsFrom(item.id, 12)).toBe(0)
+  })
+
+  describe('addBudgetForYear', () => {
+    it('creates a named budget for the given year', () => {
+      const store = useBudgetStore()
+      const budget = store.addBudgetForYear(store.currentYear, 'Work')
+      expect(budget.name).toBe('Work')
+      expect(store.currentYearData.budgets.find((b) => b.id === budget.id)).toBeTruthy()
+    })
+
+    it('falls back to "New Budget" when name is empty', () => {
+      const store = useBudgetStore()
+      const budget = store.addBudgetForYear(store.currentYear, '')
+      expect(budget.name).toBe('New Budget')
+    })
+
+    it('initialises the year if it does not yet exist', () => {
+      const store = useBudgetStore()
+      const futureYear = store.currentYear + 10
+      const budget = store.addBudgetForYear(futureYear, 'Future')
+      expect(store.data[futureYear]).toBeTruthy()
+      expect(store.data[futureYear].budgets.find((b) => b.id === budget.id)).toBeTruthy()
+    })
+  })
+
+  describe('deleteBudget', () => {
+    it('returns false when year does not exist', () => {
+      const store = useBudgetStore()
+      expect(store.deleteBudget(1800, 'any')).toBe(false)
+    })
+
+    it('returns false when budget id is not found', () => {
+      const store = useBudgetStore()
+      expect(store.deleteBudget(store.currentYear, 'nonexistent')).toBe(false)
+    })
+
+    it('resets the last budget to an empty default instead of removing it', () => {
+      const store = useBudgetStore()
+      const budgetId = store.currentYearData.budgets[0].id
+      expect(store.deleteBudget(store.currentYear, budgetId)).toBe(true)
+      expect(store.currentYearData.budgets).toHaveLength(1)
+      expect(store.currentYearData.budgets[0].name).toBe('Default')
+    })
+
+    it('removes a non-last budget and clears currentBudgetId when it matched', () => {
+      const store = useBudgetStore()
+      const second = store.addBudgetForYear(store.currentYear, 'Second')
+      store.setCurrentBudget(second.id)
+
+      expect(store.deleteBudget(store.currentYear, second.id)).toBe(true)
+      expect(store.currentBudgetId).toBeNull()
+      expect(store.currentYearData.budgets.find((b) => b.id === second.id)).toBeUndefined()
+    })
+  })
+
+  describe('renameBudget', () => {
+    it('returns false when year does not exist', () => {
+      const store = useBudgetStore()
+      expect(store.renameBudget(1800, 'any', 'Name')).toBe(false)
+    })
+
+    it('returns false when budget id is not found', () => {
+      const store = useBudgetStore()
+      expect(store.renameBudget(store.currentYear, 'nonexistent', 'Name')).toBe(false)
+    })
+
+    it('returns false when new name is blank', () => {
+      const store = useBudgetStore()
+      const id = store.currentYearData.budgets[0].id
+      expect(store.renameBudget(store.currentYear, id, '  ')).toBe(false)
+    })
+
+    it('renames budget successfully', () => {
+      const store = useBudgetStore()
+      const id = store.currentYearData.budgets[0].id
+      expect(store.renameBudget(store.currentYear, id, 'Renamed')).toBe(true)
+      expect(store.currentYearData.budgets[0].name).toBe('Renamed')
+    })
+  })
+
+  describe('editCategory guard paths', () => {
+    it('returns false when categoryId is empty', () => {
+      const store = useBudgetStore()
+      expect(store.editCategory({ categoryId: '', name: 'Test' })).toBe(false)
+    })
+
+    it('returns false when new name is blank', () => {
+      const store = useBudgetStore()
+      const cat = store.addCategory({ sectionType: 'expense', name: 'Test' })!
+      expect(store.editCategory({ categoryId: cat.id, name: '  ' })).toBe(false)
+    })
+
+    it('moves category to a different section type', () => {
+      const store = useBudgetStore()
+      const cat = store.addCategory({ sectionType: 'expense', name: 'Moving' })!
+      expect(store.editCategory({ categoryId: cat.id, name: 'Moving', sectionType: 'income' })).toBe(true)
+      expect(getExpenseSection(store).categories.find((c) => c.id === cat.id)).toBeUndefined()
+      expect(getIncomeSection(store).categories.find((c) => c.id === cat.id)).toBeTruthy()
+    })
+  })
+
+  describe('addItem guard paths', () => {
+    it('returns null when no category info is provided', () => {
+      const store = useBudgetStore()
+      expect(store.addItem({ categoryId: '', name: 'Test', baseAmount: 100, months: [] })).toBeNull()
+    })
+
+    it('returns null when categoryName is empty and new category creation fails', () => {
+      const store = useBudgetStore()
+      expect(store.addItem({ categoryId: '', categoryName: '', sectionType: 'expense', name: 'Test', baseAmount: 100, months: [] })).toBeNull()
+    })
+
+    it('returns null when item name is blank', () => {
+      const store = useBudgetStore()
+      const cat = store.addCategory({ sectionType: 'expense', name: 'Test' })!
+      expect(store.addItem({ categoryId: cat.id, name: '  ', baseAmount: 100, months: [] })).toBeNull()
+    })
+  })
+
+  describe('editItem guard paths', () => {
+    it('returns false when itemId is empty', () => {
+      const store = useBudgetStore()
+      expect(store.editItem({ itemId: '', categoryId: '', name: 'Test', baseAmount: 100, months: [] })).toBe(false)
+    })
+
+    it('returns false when name is blank', () => {
+      const store = useBudgetStore()
+      const cat = store.addCategory({ sectionType: 'expense', name: 'Test' })!
+      const item = store.addItem({ categoryId: cat.id, name: 'Item', baseAmount: 100, months: [] })!
+      expect(store.editItem({ itemId: item.id, categoryId: cat.id, name: '  ', baseAmount: 100, months: [] })).toBe(false)
+    })
+
+    it('returns false when no target category is resolvable', () => {
+      const store = useBudgetStore()
+      const cat = store.addCategory({ sectionType: 'expense', name: 'Test' })!
+      const item = store.addItem({ categoryId: cat.id, name: 'Item', baseAmount: 100, months: [] })!
+      expect(store.editItem({ itemId: item.id, categoryId: '', name: 'Item', baseAmount: 100, months: [] })).toBe(false)
+    })
+
+    it('sets weekday when editing to weekly frequency', () => {
+      const store = useBudgetStore()
+      const cat = store.addCategory({ sectionType: 'expense', name: 'Test' })!
+      const item = store.addItem({ categoryId: cat.id, name: 'Item', baseAmount: 100, months: [] })!
+      store.editItem({ itemId: item.id, categoryId: cat.id, name: 'Item', baseAmount: 100, months: [], frequency: 'weekly', weekday: 3 })
+      const refreshed = getExpenseSection(store).categories.flatMap((c) => c.items).find((i) => i.id === item.id)!
+      expect(refreshed.frequency).toBe('weekly')
+      expect(refreshed.weekday).toBe(3)
+    })
+
+    it('sets quarterStartMonth when editing to quarterly frequency', () => {
+      const store = useBudgetStore()
+      const cat = store.addCategory({ sectionType: 'expense', name: 'Test' })!
+      const item = store.addItem({ categoryId: cat.id, name: 'Item', baseAmount: 300, months: [] })!
+      store.editItem({ itemId: item.id, categoryId: cat.id, name: 'Item', baseAmount: 300, months: [], frequency: 'quarterly', quarterStartMonth: 2 })
+      const refreshed = getExpenseSection(store).categories.flatMap((c) => c.items).find((i) => i.id === item.id)!
+      expect(refreshed.frequency).toBe('quarterly')
+      expect(refreshed.quarterStartMonth).toBe(2)
+    })
+
+    it('clears weekday and quarterStartMonth when changing back to monthly', () => {
+      const store = useBudgetStore()
+      const cat = store.addCategory({ sectionType: 'expense', name: 'Test' })!
+      const item = store.addItem({ categoryId: cat.id, name: 'Item', baseAmount: 100, months: [], frequency: 'weekly', weekday: 1 })!
+      store.editItem({ itemId: item.id, categoryId: cat.id, name: 'Item', baseAmount: 100, months: [], frequency: 'monthly' })
+      const refreshed = getExpenseSection(store).categories.flatMap((c) => c.items).find((i) => i.id === item.id)!
+      expect(refreshed.weekday).toBeUndefined()
+      expect(refreshed.quarterStartMonth).toBeUndefined()
+    })
+  })
 })
