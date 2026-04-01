@@ -25,6 +25,7 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   (event: 'start-edit', itemId: string): void
+  (event: 'open-modal', itemId: string): void
   (
     event: 'save-edit',
     payload: {
@@ -143,7 +144,7 @@ const onSaveEdit = () => {
             <span v-else key="viewing" style="display: inline-flex; align-items: center; gap: 8px;">
               {{ item.name }}
               <span class="row-actions">
-                <button class="inline-action-btn" type="button" @click.stop="emit('start-edit', item.id)">
+                <button class="inline-action-btn" type="button" @click.stop="emit('open-modal', item.id)">
                   <i class="pi pi-pencil" />
                 </button>
                 <button class="inline-action-btn" type="button" @click.stop="emit('delete', item.id)">

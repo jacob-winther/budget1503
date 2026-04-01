@@ -118,6 +118,22 @@ const deleteInlineCategory = (categoryId: string) => {
   }
 }
 
+const openItemModal = (itemId: string) => {
+  const item = store.sections
+    .flatMap(s => s.categories)
+    .flatMap(c => c.items)
+    .find(i => i.id === itemId)
+
+  if (!item) return
+
+  editingItem.value = item
+  itemDialogMode.value = 'edit'
+  creatingItemCategoryId.value = null
+  editingCategoryId.value = null
+  editingItemId.value = null
+  showItemDialog.value = true
+}
+
 const startInlineItemEdit = (itemId: string) => {
   const item = store.sections
     .flatMap(s => s.categories)
@@ -319,6 +335,7 @@ const onImportBudgetSelected = async (event: Event) => {
           @cancel-category-edit="cancelInlineCategoryEdit"
           @delete-category="deleteInlineCategory"
           @start-item-edit="startInlineItemEdit"
+          @open-item-modal="openItemModal"
           @save-item-edit="saveInlineItemEdit"
           @cancel-item-edit="cancelInlineItemEdit"
           @delete-item="deleteInlineItem"

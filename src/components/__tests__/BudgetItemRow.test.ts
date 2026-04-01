@@ -23,11 +23,54 @@ describe('BudgetItemRow', () => {
     expect(wrapper.findAll('td')).toHaveLength(15)
 
     await wrapper.find('.row-actions .inline-action-btn').trigger('click')
-    expect(wrapper.emitted('start-edit')).toBeTruthy()
+    expect(wrapper.emitted('open-modal')).toBeTruthy()
+    expect(wrapper.emitted('open-modal')?.[0]).toEqual(['item-1'])
 
     await wrapper.findAll('.row-actions .inline-action-btn')[1].trigger('click')
     expect(wrapper.emitted('delete')).toBeTruthy()
     expect(wrapper.emitted('delete')?.[0]).toEqual(['item-1'])
+  })
+
+  it('emits start-edit when clicking an amount cell', async () => {
+    const wrapper = mount(BudgetItemRow, {
+      props: {
+        item: {
+          id: 'item-1',
+          categoryId: 'cat-1',
+          name: 'Internet',
+          baseAmount: 50,
+          months: Array.from({ length: 12 }, () => 50),
+          frequency: 'monthly' as const,
+        },
+        yearTotal: 600,
+        average: 50,
+      },
+    })
+
+    await wrapper.find('td.amount').trigger('click')
+    expect(wrapper.emitted('start-edit')).toBeTruthy()
+    expect(wrapper.emitted('start-edit')?.[0]).toEqual(['item-1'])
+  })
+
+  it('does not emit start-edit when clicking an amount cell while already editing', async () => {
+    const wrapper = mount(BudgetItemRow, {
+      props: {
+        item: {
+          id: 'item-1',
+          categoryId: 'cat-1',
+          name: 'Internet',
+          baseAmount: 50,
+          months: Array.from({ length: 12 }, () => 50),
+          frequency: 'monthly' as const,
+        },
+        yearTotal: 600,
+        average: 50,
+        isEditing: true,
+      },
+    })
+
+    await wrapper.find('td.amount').trigger('click')
+    expect(wrapper.emitted('start-edit')).toBeFalsy()
   })
 
   it('emits save-edit in editing mode', async () => {

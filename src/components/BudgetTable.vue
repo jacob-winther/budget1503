@@ -39,6 +39,7 @@ const emit = defineEmits<{
   (event: 'cancel-category-edit'): void
   (event: 'delete-category', categoryId: string): void
   (event: 'start-item-edit', itemId: string): void
+  (event: 'open-item-modal', itemId: string): void
   (
     event: 'save-item-edit',
     payload: {
@@ -114,6 +115,7 @@ function onItemAdd(evt: { data?: BudgetItem }, category: BudgetCategory) {
               :average="getItemMonthlyAverage(item)"
               :is-editing="editingItemId === item.id"
               @start-edit="emit('start-item-edit', $event)"
+              @open-modal="emit('open-item-modal', $event)"
               @save-edit="emit('save-item-edit', $event)"
               @cancel-edit="emit('cancel-item-edit')"
               @delete="emit('delete-item', $event)"
