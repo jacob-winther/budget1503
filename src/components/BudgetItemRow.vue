@@ -156,7 +156,7 @@ const onSaveEdit = () => {
 
       </div>
     </td>
-    <td v-for="(month, index) in item.months" :key="`${item.id}-${index}`" class="amount">
+    <td v-for="(month, index) in item.months" :key="`${item.id}-${index}`" class="amount" @click="!isEditing && emit('start-edit', item.id)">
       <template v-if="isEditing">
         <div class="amount-input-wrap">
           <div v-if="inlineNudge && inlineNudge.monthIndex === index" class="item-inline-nudge-popover">
@@ -184,7 +184,7 @@ const onSaveEdit = () => {
         {{ formatCurrency(month) }}
       </template>
     </td>
-    <td class="amount strong">{{ formatCurrency(isEditing ? draftYearTotal : yearTotal) }}</td>
-    <td class="amount">{{ formatCurrency(isEditing ? draftAverage : average) }}</td>
+    <td class="amount strong" @click="!isEditing && emit('start-edit', item.id)">{{ formatCurrency(isEditing ? draftYearTotal : yearTotal) }}</td>
+    <td class="amount" @click="!isEditing && emit('start-edit', item.id)">{{ formatCurrency(isEditing ? draftAverage : average) }}</td>
   </tr>
 </template>

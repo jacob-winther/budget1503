@@ -292,6 +292,8 @@ const onImportBudgetSelected = async (event: Event) => {
       @change="onImportBudgetSelected"
     />
 
+    <p class="edit-hint content-width">Hover over an amount to edit inline</p>
+
     <div class="content-width" style="overflow: hidden;">
       <Transition :name="store.yearSlideDirection">
         <BudgetTable
