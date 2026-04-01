@@ -22,7 +22,7 @@ const animatedMonthly = props.monthly.map((_, i) => {
 
 <template>
   <tr class="difference-row" :class="{ negative: yearly < 0 }">
-    <td class="sticky-left name-col">Difference (Income - Expenses)</td>
+    <td class="sticky-left name-col">Difference</td>
     <td v-for="(_, index) in monthly" :key="index" class="amount" :class="{ 'cell-negative': monthly[index] < 0 }">
       {{ currency(animatedMonthly[index].displayed.value) }}
     </td>

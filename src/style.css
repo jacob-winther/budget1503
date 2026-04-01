@@ -658,3 +658,66 @@ input[type='number']::-webkit-inner-spin-button {
 .item-row:not(.is-editing) td.amount:hover {
   background: #eef3fb;
 }
+
+/* ─── Print ────────────────────────────────────────────────────────────────── */
+
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 10mm;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  .toolbar,
+  .edit-hint,
+  .row-actions,
+  .inline-add-btn,
+  .collapse-btn {
+    display: none !important;
+  }
+
+  .page {
+    padding: 0;
+  }
+
+  .content-width {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .table-wrap {
+    border: none;
+    overflow: visible;
+  }
+
+  .budget-table {
+    width: 100%;
+    font-size: 0.65rem;
+    table-layout: fixed;
+  }
+
+  .budget-table th,
+  .budget-table td {
+    padding: 2px 4px;
+  }
+
+  .budget-table .name-col {
+    min-width: 0;
+    width: 14%;
+  }
+
+  .budget-table .amount {
+    min-width: 0;
+  }
+
+  .budget-table thead th {
+    position: static;
+  }
+
+  .budget-table .sticky-left {
+    position: static;
+  }
+}
