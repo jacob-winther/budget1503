@@ -675,8 +675,19 @@ input[type='number']::-webkit-inner-spin-button {
   .edit-hint,
   .row-actions,
   .inline-add-btn,
-  .collapse-btn {
+  .collapse-btn,
+  .chevron-icon,
+  .item-frequency-icon {
     display: none !important;
+  }
+
+  .budget-table td.item-name {
+    padding-left: 16px;
+  }
+
+  .budget-table td.name-col,
+  .budget-table th.name-col {
+    border: none;
   }
 
   .page {
