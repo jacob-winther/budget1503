@@ -1,6 +1,8 @@
-import type { BudgetData } from '../types/budget'
+import type { BudgetData, BudgetSection, YearData } from '../types/budget'
 
-export const BUDGET_FILE_VERSION = 1
+const createId = (): string => crypto.randomUUID()
+
+export const BUDGET_FILE_VERSION = 2
 
 export interface BudgetFilePayload {
   currentYear: number
@@ -20,23 +22,43 @@ type ImportParseResult =
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null
 
-const isBudgetData = (value: unknown): value is BudgetData => {
-  if (!isRecord(value)) {
-    return false
-  }
+// New format: yearData has a budgets array
+const isNewFormatYearData = (value: unknown): boolean =>
+  isRecord(value) && Array.isArray(value.budgets)
 
-  return Object.values(value).every((yearData) => isRecord(yearData) && Array.isArray(yearData.sections))
+// Old format (v1): yearData had sections directly
+const isLegacyFormatYearData = (value: unknown): boolean =>
+  isRecord(value) && Array.isArray(value.sections)
+
+const isBudgetData = (value: unknown): boolean => {
+  if (!isRecord(value)) return false
+  return Object.values(value).every((y) => isNewFormatYearData(y) || isLegacyFormatYearData(y))
 }
 
-const isBudgetFilePayload = (value: unknown): value is BudgetFilePayload => {
-  if (!isRecord(value)) {
-    return false
-  }
+const migrateLegacyYearData = (yearData: Record<string, unknown>): YearData => ({
+  budgets: [
+    {
+      id: createId(),
+      name: 'Default',
+      sections: yearData.sections as BudgetSection[],
+    },
+  ],
+})
 
-  if (!Number.isFinite(Number(value.currentYear))) {
-    return false
+const migrateLegacyData = (data: Record<string, unknown>): BudgetData => {
+  const result: BudgetData = {}
+  for (const [yearKey, yearData] of Object.entries(data)) {
+    if (!isRecord(yearData)) continue
+    result[Number(yearKey)] = isLegacyFormatYearData(yearData)
+      ? migrateLegacyYearData(yearData)
+      : (yearData as unknown as YearData)
   }
+  return result
+}
 
+const isBudgetFilePayload = (value: unknown): value is { currentYear: unknown; data: Record<string, unknown> } => {
+  if (!isRecord(value)) return false
+  if (!Number.isFinite(Number(value.currentYear))) return false
   return isBudgetData(value.data)
 }
 
@@ -105,7 +127,7 @@ export const parseBudgetImportJson = (raw: string): ImportParseResult => {
     ok: true,
     payload: {
       currentYear: Number(payloadCandidate.currentYear),
-      data: payloadCandidate.data,
+      data: migrateLegacyData(payloadCandidate.data),
     },
   }
 }

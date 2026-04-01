@@ -419,10 +419,17 @@ export const useBudgetStore = defineStore('budget', () => {
   const deleteBudget = (year: number, budgetId: string): boolean => {
     const yearData = data.value[year]
     if (!yearData) return false
-    if (yearData.budgets.length <= 1) return false // always keep at least one
 
     const index = yearData.budgets.findIndex((b) => b.id === budgetId)
     if (index === -1) return false
+
+    if (yearData.budgets.length <= 1) {
+      // Last budget: reset to empty default
+      const empty = createEmptyYear().budgets[0]
+      yearData.budgets[index].name = empty.name
+      yearData.budgets[index].sections = empty.sections
+      return true
+    }
 
     yearData.budgets.splice(index, 1)
 

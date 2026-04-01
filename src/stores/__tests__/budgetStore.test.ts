@@ -126,48 +126,54 @@ describe('budgetStore', () => {
     const store = useBudgetStore()
 
     store.data[store.currentYear] = {
-      sections: [
+      budgets: [
         {
-          id: 'expense-section',
-          name: 'Expenses',
-          type: 'expense',
-          collapsed: false,
-          categories: [
+          id: 'budget-1',
+          name: 'Default',
+          sections: [
             {
-              id: 'expense-category',
-              name: 'Fixed',
+              id: 'expense-section',
+              name: 'Expenses',
+              type: 'expense',
               collapsed: false,
-              items: [
+              categories: [
                 {
-                  id: 'expense-item',
-                  categoryId: 'expense-category',
-                  name: 'Rent',
-                  baseAmount: 1000,
-                  months: Array.from({ length: 12 }, () => 1000),
-                  frequency: 'monthly' as const,
+                  id: 'expense-category',
+                  name: 'Fixed',
+                  collapsed: false,
+                  items: [
+                    {
+                      id: 'expense-item',
+                      categoryId: 'expense-category',
+                      name: 'Rent',
+                      baseAmount: 1000,
+                      months: Array.from({ length: 12 }, () => 1000),
+                      frequency: 'monthly' as const,
+                    },
+                  ],
                 },
               ],
             },
-          ],
-        },
-        {
-          id: 'income-section',
-          name: 'Income',
-          type: 'income',
-          collapsed: false,
-          categories: [
             {
-              id: 'income-category',
-              name: 'Salary',
+              id: 'income-section',
+              name: 'Income',
+              type: 'income',
               collapsed: false,
-              items: [
+              categories: [
                 {
-                  id: 'income-item',
-                  categoryId: 'income-category',
+                  id: 'income-category',
                   name: 'Salary',
-                  baseAmount: 3000,
-                  months: Array.from({ length: 12 }, () => 3000),
-                  frequency: 'monthly' as const,
+                  collapsed: false,
+                  items: [
+                    {
+                      id: 'income-item',
+                      categoryId: 'income-category',
+                      name: 'Salary',
+                      baseAmount: 3000,
+                      months: Array.from({ length: 12 }, () => 3000),
+                      frequency: 'monthly' as const,
+                    },
+                  ],
                 },
               ],
             },
@@ -182,17 +188,18 @@ describe('budgetStore', () => {
     expect(store.differenceYearly).toBe(24000)
   })
 
-  it('copies previous year with new ids', () => {
+  it('copies budget to next year with new ids', () => {
     const store = useBudgetStore()
 
     const fromYear = store.currentYear
     const toYear = fromYear + 1
+    const sourceBudgetId = store.data[fromYear].budgets[0].id
 
-    const copied = store.copyYear(fromYear, toYear)
+    const copied = store.copyBudget(fromYear, sourceBudgetId, toYear, 'Default')
     expect(copied).toBe(true)
 
-    const sourceExpenseSection = store.data[fromYear].sections.find((section) => section.type === 'expense')!
-    const copiedExpenseSection = store.data[toYear].sections.find((section) => section.type === 'expense')!
+    const sourceExpenseSection = store.data[fromYear].budgets[0].sections.find((section) => section.type === 'expense')!
+    const copiedExpenseSection = store.data[toYear].budgets.at(-1)!.sections.find((section) => section.type === 'expense')!
     const copiedItem = copiedExpenseSection.categories[0].items[0]
 
     expect(copiedExpenseSection).toBeTruthy()
@@ -206,10 +213,13 @@ describe('budgetStore', () => {
 
     const fromYear = store.currentYear
     const toYear = fromYear + 1
-    const copied = store.copyYear(fromYear, toYear)
+    const sourceBudgetId = store.data[fromYear].budgets[0].id
+    const copied = store.copyBudget(fromYear, sourceBudgetId, toYear, 'Default')
     expect(copied).toBe(true)
 
     store.setYear(toYear)
+    const copiedBudgetId = store.data[toYear].budgets.at(-1)!.id
+    store.setCurrentBudget(copiedBudgetId)
 
     const expenseCategory = getExpenseSection(store).categories[0]
     const copiedItem = expenseCategory.items[0]
@@ -389,14 +399,12 @@ describe('budgetStore', () => {
     expect(newCategory!.items.some((candidate) => candidate.id === item!.id)).toBe(true)
   })
 
-  it('returns false for copy operations when source year does not exist', () => {
+  it('returns false for copy when source year does not exist', () => {
     const store = useBudgetStore()
 
-    const copiedPrevious = store.copyPreviousYear()
-    const copiedSpecific = store.copyYear(1900, store.currentYear + 5)
+    const copied = store.copyBudget(1900, 'nonexistent-id', store.currentYear + 5, 'Copy')
 
-    expect(copiedPrevious).toBe(false)
-    expect(copiedSpecific).toBe(false)
+    expect(copied).toBe(false)
   })
 
   it('handles invalid category/item operations with guard returns', () => {
