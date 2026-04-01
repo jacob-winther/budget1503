@@ -23,10 +23,10 @@ const animatedMonthly = props.monthly.map((_, i) => {
 <template>
   <tr class="difference-row" :class="{ negative: yearly < 0 }">
     <td class="sticky-left name-col">Difference (Income - Expenses)</td>
-    <td v-for="(_, index) in monthly" :key="index" class="amount">
+    <td v-for="(_, index) in monthly" :key="index" class="amount" :class="{ 'cell-negative': monthly[index] < 0 }">
       {{ currency(animatedMonthly[index].displayed.value) }}
     </td>
-    <td class="amount strong">{{ currency(animatedYearly.displayed.value) }}</td>
-    <td class="amount">{{ currency(animatedAverage.displayed.value) }}</td>
+    <td class="amount strong" :class="{ 'cell-negative': yearly < 0 }">{{ currency(animatedYearly.displayed.value) }}</td>
+    <td class="amount" :class="{ 'cell-negative': yearly < 0 }">{{ currency(animatedAverage.displayed.value) }}</td>
   </tr>
 </template>

@@ -228,11 +228,15 @@ body {
 
 .difference-row {
   font-weight: 700;
-  background: #ebfaef;
+  background: #eef0fd;
 }
 
 .difference-row.negative {
-  background: #ffe9e9;
+  background: #fdeef0;
+}
+
+.difference-row td.cell-negative {
+  color: #c0392b;
 }
 
 .section-name,
