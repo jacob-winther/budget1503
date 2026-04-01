@@ -732,3 +732,13 @@ input[type='number']::-webkit-inner-spin-button {
     position: static;
   }
 }
+
+.release-info {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 2rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+

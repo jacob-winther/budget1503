@@ -11,6 +11,9 @@ import { createBudgetExportJson, parseBudgetImportJson } from './utils/budgetFil
 
 const store = useBudgetStore()
 
+const appVersion = __APP_VERSION__
+const releaseTime = new Date(__APP_BUILD_TIME__).toLocaleString()
+
 const showItemDialog = ref(false)
 const itemDialogMode = ref<'create' | 'edit'>('create')
 const editingItem = ref<BudgetItem | null>(null)
@@ -369,5 +372,10 @@ const onImportBudgetSelected = async (event: Event) => {
       @confirm="onConfirmCopyBudget"
       @close="showCopyYearDialog = false"
     />
+
+    <footer class="release-info content-width">
+      <span>v{{ appVersion }}</span>
+      <span>Released {{ releaseTime }}</span>
+    </footer>
   </main>
 </template>

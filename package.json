@@ -1,11 +1,11 @@
 {
   "name": "budget1503",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc --noEmit && vite build",
+    "build": "npm version patch --no-git-tag-version && vue-tsc --noEmit && vite build",
     "preview": "vite preview",
     "test": "vitest",
     "coverage": "vitest run --coverage"
