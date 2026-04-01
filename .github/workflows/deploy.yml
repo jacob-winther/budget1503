@@ -1,5 +1,5 @@
 name: Deploy to GitHub Pages
-run-name: "Deploy · ${{ github.ref_name }} @ ${{ github.sha }}"
+run-name: "${{ github.sha }} ${{ github.event.head_commit.message || 'Manual trigger' }}"
 
 on:
   push:
