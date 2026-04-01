@@ -1,5 +1,5 @@
 name: Deploy to GitHub Pages
-run-name: "${{ github.sha }} ${{ github.event.head_commit.message || 'Manual trigger' }}"
+run-name: "Deploy - ${{ github.ref_name }} - ${{ github.event.head_commit.message || 'Manual trigger' }} - ${{ github.sha }}"
 
 on:
   push:
@@ -11,6 +11,7 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  actions: write
 
 concurrency:
   group: pages
@@ -35,11 +36,19 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Write job summary
+      - name: Update run title and write job summary
         run: |
+          SHORT_SHA="${GITHUB_SHA:0:7}"
           VERSION=$(node -p "require('./package.json').version")
+          COMMIT_MSG="${{ github.event.head_commit.message || 'Manual trigger' }}"
+          TITLE="Deploy - ${{ github.ref_name }} - ${COMMIT_MSG} - ${SHORT_SHA}"
+          gh api repos/${{ github.repository }}/actions/runs/${{ github.run_id }} \
+            --method PATCH \
+            --field display_title="${TITLE}"
           echo "## Deployed v${VERSION}" >> $GITHUB_STEP_SUMMARY
-          echo "Built from \`${{ github.sha }}\` on \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "Built from \`${SHORT_SHA}\` on \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
