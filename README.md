@@ -1,5 +1,33 @@
-# Vue 3 + Vite
+# Budget 1503
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+A personal budgeting app built with Vue 3, Vite, and PrimeVue. Manage multiple budgets per year, track income and expenses across categories, and export your data — all stored locally in the browser.
 
-Learn more about IDE Support for Vue in the [Vue Docs Scaling up Guide](https://vuejs.org/guide/scaling-up/tooling.html#ide-support).
+**Live demo:** https://jacob-winther.github.io/budget1503/
+
+## Features
+
+- Multiple budgets per year with rename and delete support
+- Income and expense tracking across customizable categories
+- Calculated values with visual indicators
+- Drag-and-drop row reordering
+- Clean CSV export
+- All data stored in browser localStorage — no server, no account required
+
+## Getting started
+
+```bash
+npm install
+npm run dev
+```
+
+## Build
+
+```bash
+npm run build
+```
+
+The output goes to `dist/` and can be served as a static site.
+
+## License
+
+GNU General Public License v3.0 — see [LICENSE](LICENSE) for details.
