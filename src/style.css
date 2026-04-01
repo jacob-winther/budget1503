@@ -607,6 +607,7 @@ input[type='number']::-webkit-inner-spin-button {
   transition: transform var(--dur-micro) var(--ease-out-expo);
   display: inline-block;
   transform: rotate(90deg); /* points down when expanded */
+  font-size: 0.6rem !important;
 }
 .chevron-icon.is-collapsed {
   transform: rotate(0deg); /* points right when collapsed */
