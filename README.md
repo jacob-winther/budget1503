@@ -11,6 +11,8 @@ A personal budgeting app built with Vue 3, Vite, and PrimeVue. Manage multiple b
 - Calculated values with visual indicators
 - Drag-and-drop row reordering
 - Clean CSV export
+- Printer-friendly layout optimised for A4 landscape — trigger with `Ctrl+P` / `Cmd+P`
+- Build-time versioning — patch version auto-increments on each build, with version number and release timestamp shown in the app footer
 - All data stored in browser localStorage — no server, no account required
 
 ## Getting started
